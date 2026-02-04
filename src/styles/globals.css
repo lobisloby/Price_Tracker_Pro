@@ -1,0 +1,58 @@
+/* src/styles/globals.css */
+
+/* Import Tailwind v4 */
+@import "tailwindcss";
+
+/* Professional Orange Theme – Comfortable & Pro */
+@theme {
+  /* Primary (warm neutral base with orange undertone) */
+  --color-primary-50: #f4f0eb;
+  --color-primary-100: #e8e1d9;
+  --color-primary-200: #d6cbbf;
+  --color-primary-300: #c2b19f;
+  --color-primary-400: #a8927c;
+  --color-primary-500: #8d7561;
+  --color-primary-600: #735e4d;
+  --color-primary-700: #5c4b3e;
+  --color-primary-800: #43372d;
+  --color-primary-900: #30271f;
+
+  /* Secondary (burnt orange accent – professional) */
+  --color-secondary-500: #c06a2b;
+
+  /* Dark shades (warm cocoa, not black) */
+  --color-dark-100: #4a3a2f;
+  --color-dark-200: #3d3026;
+  --color-dark-300: #31261e;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
