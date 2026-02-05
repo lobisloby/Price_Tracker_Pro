@@ -65,7 +65,7 @@ function Sidebar({ currentPage, onNavigate }) {
           <Sparkles size={18} />
           Upgrade to Pro
         </button>
-        <p className="text-center text-xs text-gray-500 mt-3">Version 1.0.0</p>
+        <p className="text-center text-xs text-gray-500 mt-3">Version 1.0.1</p>
       </div>
     </div>
   );

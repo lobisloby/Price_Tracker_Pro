@@ -344,7 +344,7 @@ function Popup() {
       <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 text-xs text-gray-400 bg-gray-50">
         <span className="flex items-center gap-1">
           <Sparkles size={10} />
-          v1.0.0
+          v1.0.1
         </span>
         <div className="flex gap-4">
           {!isPro && (
