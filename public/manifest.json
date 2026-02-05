@@ -29,7 +29,8 @@
   "host_permissions": [
     "https://*.aliexpress.com/*",
     "https://*.aliexpress.us/*",
-    "https://*.aliexpress.ru/*"
+    "https://*.aliexpress.ru/*",
+    "https://api.lemonsqueezy.com/*"
   ],
 
   "background": {

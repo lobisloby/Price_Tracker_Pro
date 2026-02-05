@@ -3,13 +3,11 @@
 
 const LEMONSQUEEZY_API = "https://api.lemonsqueezy.com/v1/licenses";
 
-// Your LemonSqueezy Store ID (you'll get this from your dashboard)
-// Replace with your actual store ID after creating the product
-const STORE_ID = "YOUR_STORE_ID"; 
+const STORE_ID = "270988"; 
 
 export const LICENSE_CONFIG = {
   FREE_PRODUCT_LIMIT: 5,
-  STORE_URL: "https://YOUR_STORE.lemonsqueezy.com/buy/YOUR_PRODUCT_ID", // Replace with your actual URL
+  STORE_URL: "https://pricetrackerr.lemonsqueezy.com/checkout/buy/4a86e7a2-ab7e-4e2e-b1be-b3c64c1ff4d1", 
 };
 
 /**
@@ -64,18 +62,53 @@ export async function canAddProduct() {
 }
 
 /**
+ * Clean license key - remove spaces, special characters
+ */
+function cleanLicenseKey(key) {
+  return key
+    .trim()
+    .replace(/\s/g, '')      // Remove all spaces
+    .replace(/[^\w-]/g, '')  // Remove special characters except dash
+    .toUpperCase();
+}
+
+/**
+ * Validate license key format
+ * Accepts UUID format (LemonSqueezy)
+ */
+function isValidKeyFormat(key) {
+  // UUID format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (36 chars)
+  const uuidPattern = /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/;
+  
+  return uuidPattern.test(key);
+}
+
+/**
  * Validate license key with LemonSqueezy
  */
 export async function validateLicenseKey(licenseKey) {
   try {
     // Clean the license key
-    const cleanKey = licenseKey.trim().toUpperCase();
+    const cleanKey = cleanLicenseKey(licenseKey);
 
-    if (!cleanKey || cleanKey.length < 10) {
+    // Debug logging (remove in production if you want)
+    console.log("Validating key:", cleanKey);
+    console.log("Key length:", cleanKey.length);
+
+    // Check format first
+    if (!cleanKey) {
+      return { valid: false, error: "Please enter a license key" };
+    }
+
+    if (cleanKey.length !== 36) {
+      return { valid: false, error: "Invalid license key length. Expected 36 characters." };
+    }
+
+    if (!isValidKeyFormat(cleanKey)) {
       return { valid: false, error: "Invalid license key format" };
     }
 
-    // Try to validate with LemonSqueezy API
+    // Validate with LemonSqueezy API
     try {
       const response = await fetch(`${LEMONSQUEEZY_API}/validate`, {
         method: "POST",
@@ -107,28 +140,21 @@ export async function validateLicenseKey(licenseKey) {
             error: data.error || "License key is not valid or has been deactivated",
           };
         }
+      } else {
+        // Handle non-OK response
+        const errorData = await response.json().catch(() => ({}));
+        return {
+          valid: false,
+          error: errorData.error || "Failed to validate license with server",
+        };
       }
     } catch (apiError) {
-      console.log("LemonSqueezy API not available, using offline validation");
-    }
-
-    // Offline validation fallback (for testing or if API is unavailable)
-    // In production, you should always use the API
-    // This accepts any key that matches a pattern like: XXXX-XXXX-XXXX-XXXX
-    const keyPattern = /^[A-Z0-9]{4,}-[A-Z0-9]{4,}-[A-Z0-9]{4,}-[A-Z0-9]{4,}$/;
-    
-    if (keyPattern.test(cleanKey)) {
+      console.error("LemonSqueezy API error:", apiError);
       return {
-        valid: true,
-        data: {
-          key: cleanKey,
-          activatedAt: new Date().toISOString(),
-          offlineValidation: true,
-        },
+        valid: false,
+        error: "Unable to connect to license server. Please check your internet connection.",
       };
     }
-
-    return { valid: false, error: "Invalid license key format" };
   } catch (error) {
     console.error("License validation error:", error);
     return { valid: false, error: "Failed to validate license. Please try again." };

@@ -274,7 +274,8 @@ function Premium() {
               <input
                 type="text"
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500 transition-colors font-mono"
-                placeholder="XXXX-XXXX-XXXX-XXXX"
+                placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+                maxLength={36}
                 value={licenseKey}
                 onChange={(e) => {
                   setLicenseKey(e.target.value.toUpperCase());
@@ -284,7 +285,7 @@ function Premium() {
               <button
                 onClick={handleActivate}
                 disabled={activating || !licenseKey.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
               >
                 {activating ? (
                   <span className="flex items-center gap-2">

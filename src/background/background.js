@@ -118,11 +118,66 @@ async function handleCleanup() {
 }
 
 // ============================================
+// LICENSE VALIDATION (LemonSqueezy)
+// ============================================
+
+async function validateLicenseWithAPI(licenseKey) {
+  try {
+    console.log("🔑 Validating license with LemonSqueezy API...");
+    
+    const response = await fetch("https://api.lemonsqueezy.com/v1/licenses/validate", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        license_key: licenseKey,
+      }),
+    });
+
+    const data = await response.json();
+    console.log("🔑 LemonSqueezy response:", data);
+
+    if (data.valid || data.license_key?.status === "active") {
+      return {
+        valid: true,
+        data: {
+          key: licenseKey,
+          activatedAt: new Date().toISOString(),
+          customerEmail: data.meta?.customer_email || data.license_key?.customer_email,
+          customerName: data.meta?.customer_name || data.license_key?.customer_name,
+        },
+      };
+    } else {
+      return {
+        valid: false,
+        error: data.error || "License key is not valid or has been deactivated",
+      };
+    }
+  } catch (error) {
+    console.error("🔑 License API error:", error);
+    return {
+      valid: false,
+      error: "Failed to validate license. Please check your internet connection.",
+    };
+  }
+}
+
+// ============================================
 // MESSAGE HANDLING
 // ============================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("📨 Message:", message.type);
+  console.log("📨 Message:", message.type || message.action);
+
+  // Handle license validation
+  if (message.action === "validateLicense") {
+    validateLicenseWithAPI(message.licenseKey)
+      .then((result) => sendResponse(result))
+      .catch((error) => sendResponse({ valid: false, error: error.message }));
+    return true; // Required for async sendResponse
+  }
 
   const handlers = {
     TRACK_PRODUCT: () => handleTrackProduct(message.data),
