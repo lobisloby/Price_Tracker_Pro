@@ -1,5 +1,11 @@
 // src/dashboard/components/AlertItem.jsx
 import React from 'react';
+import {
+  TrendingDown,
+  TrendingUp,
+  ExternalLink,
+  X
+} from 'lucide-react';
 
 function AlertItem({ alert, onDelete }) {
   const isPriceDrop = alert.type === 'price_drop';
@@ -24,12 +30,16 @@ function AlertItem({ alert, onDelete }) {
   return (
     <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group">
       {/* Icon */}
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0 ${
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
         isPriceDrop 
           ? 'bg-emerald-100 text-emerald-600' 
           : 'bg-red-100 text-red-600'
       }`}>
-        {isPriceDrop ? '📉' : '📈'}
+        {isPriceDrop ? (
+          <TrendingDown size={24} strokeWidth={2} />
+        ) : (
+          <TrendingUp size={24} strokeWidth={2} />
+        )}
       </div>
       
       {/* Product Image (if available) */}
@@ -72,8 +82,13 @@ function AlertItem({ alert, onDelete }) {
       
       {/* Savings & Time */}
       <div className="text-right shrink-0">
-        <div className={`text-sm font-bold ${isPriceDrop ? 'text-emerald-500' : 'text-red-500'}`}>
-          {isPriceDrop ? '↓' : '↑'} {alert.savings}%
+        <div className={`text-sm font-bold flex items-center justify-end gap-1 ${isPriceDrop ? 'text-emerald-500' : 'text-red-500'}`}>
+          {isPriceDrop ? (
+            <TrendingDown size={14} />
+          ) : (
+            <TrendingUp size={14} />
+          )}
+          {alert.savings}%
         </div>
         <div className="text-xs text-gray-400 mt-0.5">
           {getTimeAgo(alert.time)}
@@ -89,7 +104,7 @@ function AlertItem({ alert, onDelete }) {
           className="p-2 hover:bg-orange-100 rounded-lg transition-colors text-gray-400 hover:text-orange-500"
           title="View product"
         >
-          🔗
+          <ExternalLink size={16} />
         </a>
         {onDelete && (
           <button
@@ -97,7 +112,7 @@ function AlertItem({ alert, onDelete }) {
             className="p-2 hover:bg-red-100 rounded-lg transition-colors text-gray-400 hover:text-red-500"
             title="Delete alert"
           >
-            ✕
+            <X size={16} />
           </button>
         )}
       </div>

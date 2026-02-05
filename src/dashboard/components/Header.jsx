@@ -2,6 +2,12 @@
 // ✅ LOCAL STORAGE ONLY - No sync indicator
 
 import React, { useState } from "react";
+import {
+  Download,
+  RefreshCw,
+  ShoppingCart,
+  Loader2
+} from "lucide-react";
 
 const pageTitles = {
   dashboard: "Dashboard",
@@ -69,12 +75,12 @@ function Header({ currentPage, onExport, onRefresh, productCount = 0 }) {
               >
                 {exporting ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <Loader2 size={16} className="animate-spin" />
                     Exporting...
                   </>
                 ) : (
                   <>
-                    <span>📤</span>
+                    <Download size={16} />
                     Export CSV
                   </>
                 )}
@@ -88,7 +94,7 @@ function Header({ currentPage, onExport, onRefresh, productCount = 0 }) {
               disabled={refreshing}
               className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
-              <span className={refreshing ? "animate-spin" : ""}>🔄</span>
+              <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
               Refresh
             </button>
           )}
@@ -100,7 +106,7 @@ function Header({ currentPage, onExport, onRefresh, productCount = 0 }) {
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium text-sm hover:shadow-lg transition-all"
           >
-            <span>🛒</span>
+            <ShoppingCart size={16} />
             Open AliExpress
           </a>
         </div>

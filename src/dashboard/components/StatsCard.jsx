@@ -1,7 +1,8 @@
 // src/dashboard/components/StatsCard.jsx
 import React from 'react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
-function StatsCard({ icon, value, label, color = 'orange', trend, trendDirection }) {
+function StatsCard({ icon: Icon, value, label, color = 'orange', trend, trendDirection }) {
   const colorClasses = {
     orange: 'from-orange-500 to-orange-600',
     green: 'from-emerald-500 to-emerald-600',
@@ -12,18 +13,19 @@ function StatsCard({ icon, value, label, color = 'orange', trend, trendDirection
   return (
     <div className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start mb-3">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center text-white text-xl shadow-lg`}>
-          {icon}
+        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center text-white shadow-lg`}>
+          <Icon size={24} strokeWidth={1.8} />
         </div>
         {trend && (
           <span
-            className={`text-xs px-2 py-1 rounded-full font-medium ${
+            className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${
               trendDirection === 'up'
                 ? 'bg-emerald-100 text-emerald-600'
                 : 'bg-red-100 text-red-600'
             }`}
           >
-            {trendDirection === 'up' ? '↑' : '↓'} {trend}
+            {trendDirection === 'up' ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {trend}
           </span>
         )}
       </div>

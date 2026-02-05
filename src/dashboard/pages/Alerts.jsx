@@ -1,5 +1,15 @@
 // src/dashboard/pages/Alerts.jsx
 import React, { useState } from 'react';
+import {
+  Bell,
+  TrendingDown,
+  DollarSign,
+  RefreshCw,
+  Trash2,
+  AlertTriangle,
+  BellOff,
+  Loader2
+} from 'lucide-react';
 import AlertItem from '../components/AlertItem';
 import { useAlerts } from '../hooks/useAlerts';
 
@@ -51,8 +61,8 @@ function Alerts() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-xl">
-              🔔
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white">
+              <Bell size={24} />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-800">{totalAlerts}</p>
@@ -63,8 +73,8 @@ function Alerts() {
         
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white text-xl">
-              📉
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white">
+              <TrendingDown size={24} />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-800">{groupedAlerts.today.length}</p>
@@ -75,8 +85,8 @@ function Alerts() {
         
         <div className="bg-white rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xl">
-              💰
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
+              <DollarSign size={24} />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-800">${totalSavings}</p>
@@ -124,16 +134,18 @@ function Alerts() {
         <div className="flex items-center gap-2">
           <button
             onClick={refresh}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
           >
-            🔄 Refresh
+            <RefreshCw size={16} />
+            Refresh
           </button>
           {alerts.length > 0 && (
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
             >
-              🗑️ Clear All
+              <Trash2 size={16} />
+              Clear All
             </button>
           )}
         </div>
@@ -144,7 +156,9 @@ function Alerts() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
             <div className="text-center">
-              <div className="text-5xl mb-4">⚠️</div>
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} className="text-red-500" />
+              </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Clear All Alerts?
               </h3>
@@ -161,8 +175,9 @@ function Alerts() {
                 </button>
                 <button
                   onClick={handleClearAll}
-                  className="px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
                 >
+                  <Trash2 size={16} />
                   Yes, Clear All
                 </button>
               </div>
@@ -175,14 +190,14 @@ function Alerts() {
       {loading ? (
         <div className="bg-white rounded-xl p-12 shadow-sm">
           <div className="text-center text-gray-400">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
+            <Loader2 size={40} className="animate-spin mx-auto mb-4 text-orange-500" />
             Loading alerts...
           </div>
         </div>
       ) : filteredAlerts.length === 0 ? (
         <div className="bg-white rounded-xl p-12 shadow-sm">
           <div className="text-center">
-            <div className="text-5xl mb-4">🔕</div>
+            <BellOff size={48} className="mx-auto mb-4 text-gray-300" />
             <h3 className="text-lg font-semibold text-gray-700 mb-2">
               No alerts yet
             </h3>

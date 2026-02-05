@@ -1,5 +1,15 @@
 // src/dashboard/pages/Products.jsx
 import React, { useState, useEffect } from "react";
+import {
+  Search,
+  RefreshCw,
+  Package,
+  Trash2,
+  AlertTriangle,
+  PackageOpen,
+  ShoppingCart,
+  Loader2
+} from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import { useProducts } from "../hooks/useProducts";
 
@@ -63,9 +73,7 @@ function Products({ onProductCountChange, onAnalyze }) {
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                🔍
-              </span>
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search products..."
@@ -92,9 +100,10 @@ function Products({ onProductCountChange, onAnalyze }) {
           {/* Refresh */}
           <button
             onClick={refresh}
-            className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
           >
-            🔄 Refresh
+            <RefreshCw size={16} />
+            Refresh
           </button>
         </div>
       </div>
@@ -102,8 +111,9 @@ function Products({ onProductCountChange, onAnalyze }) {
       {/* Products Count & Actions */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-gray-800">
-            📦 All Products
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Package size={20} className="text-orange-500" />
+            All Products
           </h2>
           <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-sm font-medium">
             {filteredProducts.length}{" "}
@@ -114,9 +124,10 @@ function Products({ onProductCountChange, onAnalyze }) {
         {products.length > 0 && (
           <button
             onClick={() => setShowDeleteAll(true)}
-            className="px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
           >
-            🗑️ Delete All
+            <Trash2 size={16} />
+            Delete All
           </button>
         )}
       </div>
@@ -126,7 +137,9 @@ function Products({ onProductCountChange, onAnalyze }) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
             <div className="text-center">
-              <div className="text-5xl mb-4">⚠️</div>
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} className="text-red-500" />
+              </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
                 Delete All Products?
               </h3>
@@ -143,8 +156,9 @@ function Products({ onProductCountChange, onAnalyze }) {
                 </button>
                 <button
                   onClick={handleDeleteAll}
-                  className="px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
                 >
+                  <Trash2 size={16} />
                   Yes, Delete All
                 </button>
               </div>
@@ -157,12 +171,16 @@ function Products({ onProductCountChange, onAnalyze }) {
       <div className="bg-white rounded-xl p-5 shadow-sm">
         {loading ? (
           <div className="text-center py-12 text-gray-400">
-            <div className="animate-spin text-4xl mb-4">⏳</div>
+            <Loader2 size={40} className="animate-spin mx-auto mb-4 text-orange-500" />
             Loading products...
           </div>
         ) : sortedProducts.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-5xl mb-4">{searchTerm ? "🔍" : "📭"}</div>
+            {searchTerm ? (
+              <Search size={48} className="mx-auto mb-4 text-gray-300" />
+            ) : (
+              <PackageOpen size={48} className="mx-auto mb-4 text-gray-300" />
+            )}
             <h3 className="text-lg font-semibold text-gray-700 mb-2">
               {searchTerm ? "No products found" : "No products yet"}
             </h3>
@@ -176,9 +194,10 @@ function Products({ onProductCountChange, onAnalyze }) {
                 href="https://www.aliexpress.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block mt-4 px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                className="inline-flex items-center gap-2 mt-4 px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
               >
-                🛒 Go to AliExpress
+                <ShoppingCart size={18} />
+                Go to AliExpress
               </a>
             )}
           </div>

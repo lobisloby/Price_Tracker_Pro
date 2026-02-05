@@ -1,8 +1,124 @@
 // src/content/content.js
 // AliExpress Price Tracker Pro - Content Script
-// ✅ Updated with better price check feedback
+// ✅ Safe Version with Professional SVG Icons
 
 console.log("✅ AliExpress Price Tracker: Content script loaded!");
+
+// ============================================
+// SVG ICONS (Inline, no dependencies)
+// ============================================
+
+const ICONS = {
+  search: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <circle cx="11" cy="11" r="8"></circle>
+    <path d="m21 21-4.3-4.3"></path>
+  </svg>`,
+  
+  checkCircle: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+  </svg>`,
+  
+  alertTriangle: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+    <path d="M12 9v4"></path>
+    <path d="M12 17h.01"></path>
+  </svg>`,
+  
+  xCircle: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="m15 9-6 6"></path>
+    <path d="m9 9 6 6"></path>
+  </svg>`,
+  
+  loader: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;animation:trackerSpin 1s linear infinite;">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+  </svg>`,
+  
+  lock: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+  </svg>`,
+  
+  trendingDown: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <polyline points="22 17 13.5 8.5 8.5 13.5 2 7"></polyline>
+    <polyline points="16 17 22 17 22 11"></polyline>
+  </svg>`,
+  
+  trendingUp: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+    <polyline points="16 7 22 7 22 13"></polyline>
+  </svg>`,
+  
+  rocket: `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+  </svg>`,
+  
+  check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <polyline points="20 6 9 17 4 12"></polyline>
+  </svg>`,
+  
+  shoppingCart: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <circle cx="8" cy="21" r="1"></circle>
+    <circle cx="19" cy="21" r="1"></circle>
+    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+  </svg>`,
+  
+  x: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 6 6 18"></path>
+    <path d="m6 6 12 12"></path>
+  </svg>`,
+  
+  bell: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+  </svg>`,
+  
+  sparkles: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+    <path d="M5 3v4"></path>
+    <path d="M19 17v4"></path>
+    <path d="M3 5h4"></path>
+    <path d="M17 19h4"></path>
+  </svg>`,
+};
+
+// ============================================
+// INJECT KEYFRAMES (only once)
+// ============================================
+
+function injectKeyframes() {
+  if (document.getElementById("aliexpress-tracker-keyframes")) return;
+  
+  const style = document.createElement("style");
+  style.id = "aliexpress-tracker-keyframes";
+  style.textContent = `
+    @keyframes trackerSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes trackerSlideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes trackerSlideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes trackerFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes trackerSlideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 // ============================================
 // CHECK IF WE'RE ON ALIEXPRESS
@@ -22,7 +138,6 @@ function isProductPage() {
 
 function extractProductData() {
   try {
-    // Title - try multiple selectors
     const titleSelectors = [
       'h1[data-pl="product-title"]',
       ".product-title-text",
@@ -40,7 +155,6 @@ function extractProductData() {
       }
     }
 
-    // Price - try multiple selectors
     const priceSelectors = [
       ".product-price-value",
       ".uniform-banner-box-price",
@@ -59,7 +173,6 @@ function extractProductData() {
       }
     }
 
-    // Parse price (handle formats like "$29.99", "US $29.99", "29,99 €")
     const priceMatch = priceText.match(/[\d.,]+/);
     let price = 0;
     if (priceMatch) {
@@ -72,11 +185,9 @@ function extractProductData() {
       price = parseFloat(priceStr) || 0;
     }
 
-    // Currency
     const currencyMatch = priceText.match(/[$€£¥₽]/);
     const currency = currencyMatch ? currencyMatch[0] : "$";
 
-    // Image
     const imageSelectors = [
       ".magnifier-image",
       ".pdp-mod-product-badge-img img",
@@ -94,7 +205,6 @@ function extractProductData() {
       }
     }
 
-    // Product ID from URL
     const urlMatch = window.location.pathname.match(/\/item\/(\d+)/);
     const productId = urlMatch ? urlMatch[1] : Date.now().toString();
 
@@ -117,71 +227,75 @@ function extractProductData() {
 }
 
 // ============================================
-// TRACK BUTTON UI
+// BUTTON STYLES (keeping inline for safety)
 // ============================================
 
 const buttonStyles = {
   container: `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 2147483647;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 2147483647 !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   `,
   button: `
-    padding: 14px 24px;
-    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    padding: 14px 24px !important;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4) !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   `,
   buttonHover: `
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(255, 107, 53, 0.5);
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 30px rgba(255, 107, 53, 0.5) !important;
   `,
   buttonTracked: `
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4) !important;
   `,
   buttonError: `
-    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4) !important;
   `,
   buttonWarning: `
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4) !important;
   `,
   buttonChecking: `
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4) !important;
   `,
 };
 
+// ============================================
+// TRACK BUTTON UI
+// ============================================
+
 function createTrackButton() {
-  // Remove existing button if any
+  injectKeyframes();
+
   const existing = document.querySelector("#aliexpress-tracker-btn");
   if (existing) existing.remove();
 
-  // Create container
   const container = document.createElement("div");
   container.id = "aliexpress-tracker-container";
   container.style.cssText = buttonStyles.container;
 
-  // Create button
   const button = document.createElement("button");
   button.id = "aliexpress-tracker-btn";
-  button.innerHTML = "🔍 Track Price";
+  button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
   button.style.cssText = buttonStyles.button;
 
-  // Hover effects
+  // Hover effects (keeping original approach)
   button.addEventListener("mouseenter", () => {
     if (!button.disabled) {
       button.style.cssText = buttonStyles.button + buttonStyles.buttonHover;
@@ -190,17 +304,21 @@ function createTrackButton() {
 
   button.addEventListener("mouseleave", () => {
     if (!button.disabled) {
-      button.style.cssText = buttonStyles.button;
+      // Restore correct state style
+      const isTracked = button.innerHTML.includes("Tracking");
+      if (isTracked) {
+        button.style.cssText = buttonStyles.button + buttonStyles.buttonTracked;
+      } else {
+        button.style.cssText = buttonStyles.button;
+      }
     }
   });
 
-  // Click handler
   button.addEventListener("click", handleTrackClick);
 
   container.appendChild(button);
   document.body.appendChild(container);
 
-  // Check if product is already tracked
   checkIfTracked();
 
   return button;
@@ -225,11 +343,10 @@ async function checkIfTracked() {
     );
 
     if (trackedProduct) {
-      button.innerHTML = "✅ Tracking";
+      button.innerHTML = `${ICONS.checkCircle} <span>Tracking</span>`;
       button.style.cssText = buttonStyles.button + buttonStyles.buttonTracked;
       button.disabled = true;
 
-      // ✅ Auto-check price for tracked products
       console.log("📊 Product is tracked, checking for price changes...");
       setTimeout(() => checkForPriceChanges(), 1000);
     }
@@ -239,27 +356,27 @@ async function checkIfTracked() {
 }
 
 // ============================================
-// UPGRADE MODAL (for free users at limit)
+// UPGRADE MODAL
 // ============================================
 
 function showUpgradeModal() {
-  // Remove existing modal if any
   const existing = document.querySelector("#aliexpress-tracker-upgrade-modal");
   if (existing) existing.remove();
 
   const modal = document.createElement("div");
   modal.id = "aliexpress-tracker-upgrade-modal";
   modal.innerHTML = `
-    <div style="
+    <div id="tracker-modal-backdrop" style="
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2147483647;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      animation: fadeIn 0.2s ease;
+      animation: trackerFadeIn 0.2s ease;
     ">
       <div style="
         background: white;
@@ -269,13 +386,13 @@ function showUpgradeModal() {
         width: 90%;
         text-align: center;
         box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-        animation: slideUp 0.3s ease;
+        animation: trackerSlideUp 0.3s ease;
       ">
-        <div style="font-size: 64px; margin-bottom: 16px;">🚀</div>
-        <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 8px;">
+        <div style="margin-bottom: 16px;">${ICONS.rocket}</div>
+        <h2 style="font-size: 24px; font-weight: 700; color: #1f2937; margin: 0 0 8px 0;">
           Upgrade to Premium
         </h2>
-        <p style="color: #6b7280; margin-bottom: 20px; font-size: 14px;">
+        <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 14px; line-height: 1.5;">
           You've reached the free limit of <strong>5 products</strong>.<br>
           Upgrade to track <strong>unlimited products</strong>!
         </p>
@@ -286,14 +403,33 @@ function showUpgradeModal() {
           padding: 16px;
           margin-bottom: 20px;
         ">
-          <div style="font-size: 32px; font-weight: 700; color: #ea580c;">
+          <div style="font-size: 32px; font-weight: 700; color: #ea580c; margin: 0;">
             $3 <span style="font-size: 14px; font-weight: 400; color: #9a3412;">one-time</span>
           </div>
-          <div style="font-size: 12px; color: #9a3412;">Pay once, use forever!</div>
+          <div style="font-size: 12px; color: #9a3412; margin: 4px 0 0 0;">Pay once, use forever!</div>
         </div>
 
+        <ul style="
+          text-align: left;
+          margin: 0 0 20px 0;
+          padding: 0;
+          list-style: none;
+          font-size: 14px;
+          color: #374151;
+        ">
+          <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            ${ICONS.check} Unlimited product tracking
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            ${ICONS.check} Priority price checking
+          </li>
+          <li style="display: flex; align-items: center; gap: 10px;">
+            ${ICONS.check} Lifetime access
+          </li>
+        </ul>
+
         <div style="display: flex; flex-direction: column; gap: 12px;">
-          <button id="upgrade-btn" style="
+          <button id="tracker-upgrade-btn" style="
             width: 100%;
             padding: 14px;
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
@@ -304,10 +440,14 @@ function showUpgradeModal() {
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
           ">
-            🛒 Get Premium
+            ${ICONS.shoppingCart} Get Premium
           </button>
-          <button id="close-modal-btn" style="
+          <button id="tracker-close-modal-btn" style="
             width: 100%;
             padding: 12px;
             background: #f3f4f6;
@@ -322,32 +462,17 @@ function showUpgradeModal() {
           </button>
         </div>
 
-        <p style="font-size: 11px; color: #9ca3af; margin-top: 16px;">
+        <p style="font-size: 11px; color: #9ca3af; margin: 16px 0 0 0;">
           Already have a key? Go to Dashboard → Premium to activate
         </p>
       </div>
     </div>
   `;
 
-  // Add animations
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
-
   document.body.appendChild(modal);
 
-  // Button handlers
-  document.getElementById("upgrade-btn")?.addEventListener("click", () => {
-    // Replace with your actual LemonSqueezy store URL
+  // Event listeners
+  document.getElementById("tracker-upgrade-btn")?.addEventListener("click", () => {
     window.open(
       "https://pricetrackerr.lemonsqueezy.com/checkout/buy/4a86e7a2-ab7e-4e2e-b1be-b3c64c1ff4d1",
       "_blank",
@@ -355,17 +480,20 @@ function showUpgradeModal() {
     modal.remove();
   });
 
-  document.getElementById("close-modal-btn")?.addEventListener("click", () => {
+  document.getElementById("tracker-close-modal-btn")?.addEventListener("click", () => {
     modal.remove();
   });
 
-  // Close on background click
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal.firstElementChild) {
+  document.getElementById("tracker-modal-backdrop")?.addEventListener("click", (e) => {
+    if (e.target.id === "tracker-modal-backdrop") {
       modal.remove();
     }
   });
 }
+
+// ============================================
+// HANDLE TRACK CLICK
+// ============================================
 
 async function handleTrackClick() {
   const button = document.querySelector("#aliexpress-tracker-btn");
@@ -374,18 +502,19 @@ async function handleTrackClick() {
   const productData = extractProductData();
 
   if (!productData || productData.price === 0) {
-    button.innerHTML = "⚠️ Could not get price";
+    button.innerHTML = `${ICONS.alertTriangle} <span>Could not get price</span>`;
     button.style.cssText = buttonStyles.button + buttonStyles.buttonWarning;
 
     setTimeout(() => {
-      button.innerHTML = "🔍 Track Price";
+      button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
       button.style.cssText = buttonStyles.button;
     }, 2000);
     return;
   }
 
   // Loading state
-  button.innerHTML = "⏳ Tracking...";
+  button.innerHTML = `${ICONS.loader} <span>Tracking...</span>`;
+  button.style.cssText = buttonStyles.button + buttonStyles.buttonChecking;
   button.disabled = true;
 
   try {
@@ -397,40 +526,37 @@ async function handleTrackClick() {
     console.log("Track response:", response);
 
     if (response?.success) {
-      button.innerHTML = "✅ Tracking!";
+      button.innerHTML = `${ICONS.checkCircle} <span>Tracking!</span>`;
       button.style.cssText = buttonStyles.button + buttonStyles.buttonTracked;
 
-      // Show success message with count
       const remaining = response.limit - response.currentCount;
       if (!response.isPro && remaining <= 2) {
-        showToast(`✅ Tracked! ${remaining} free slots left`, "warning");
+        showToast(`Tracked! ${remaining} free slots left`, "warning");
       } else {
-        showToast("✅ Product added to tracking!", "success");
+        showToast("Product added to tracking!", "success");
       }
     } else if (response?.error === "limit_reached") {
-      // ✅ SHOW UPGRADE MODAL
-      button.innerHTML = "🔒 Limit Reached";
+      button.innerHTML = `${ICONS.lock} <span>Limit Reached</span>`;
       button.style.cssText = buttonStyles.button + buttonStyles.buttonWarning;
       button.disabled = false;
 
       showUpgradeModal();
 
       setTimeout(() => {
-        button.innerHTML = "🔍 Track Price";
+        button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
         button.style.cssText = buttonStyles.button;
       }, 3000);
     } else {
-      button.innerHTML = "⚠️ " + (response?.error || "Already tracked");
+      button.innerHTML = `${ICONS.alertTriangle} <span>${response?.error || "Already tracked"}</span>`;
       button.style.cssText = buttonStyles.button + buttonStyles.buttonWarning;
 
       setTimeout(() => {
         if (response?.error === "Already tracked") {
-          button.innerHTML = "✅ Tracking";
-          button.style.cssText =
-            buttonStyles.button + buttonStyles.buttonTracked;
+          button.innerHTML = `${ICONS.checkCircle} <span>Tracking</span>`;
+          button.style.cssText = buttonStyles.button + buttonStyles.buttonTracked;
           button.disabled = true;
         } else {
-          button.innerHTML = "🔍 Track Price";
+          button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
           button.style.cssText = buttonStyles.button;
           button.disabled = false;
         }
@@ -438,19 +564,19 @@ async function handleTrackClick() {
     }
   } catch (error) {
     console.error("Error tracking product:", error);
-    button.innerHTML = "❌ Error";
+    button.innerHTML = `${ICONS.xCircle} <span>Error</span>`;
     button.style.cssText = buttonStyles.button + buttonStyles.buttonError;
     button.disabled = false;
 
     setTimeout(() => {
-      button.innerHTML = "🔍 Track Price";
+      button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
       button.style.cssText = buttonStyles.button;
     }, 2000);
   }
 }
 
 // ============================================
-// PRICE CHECK (When revisiting a tracked product)
+// PRICE CHECK
 // ============================================
 
 async function checkForPriceChanges() {
@@ -459,9 +585,7 @@ async function checkForPriceChanges() {
 
   try {
     console.log("🔍 Checking price:", productData.price);
-
-    // ✅ Show checking indicator
-    showToast("🔍 Checking price...", "info");
+    showToast("Checking price...", "info");
 
     const response = await chrome.runtime.sendMessage({
       type: "CHECK_PRICE",
@@ -471,31 +595,19 @@ async function checkForPriceChanges() {
     console.log("📥 Price check response:", response);
 
     if (response?.priceDropped) {
-      console.log(
-        `🎉 Price dropped! ${response.oldPrice} → ${response.newPrice}`,
-      );
+      console.log(`🎉 Price dropped! ${response.oldPrice} → ${response.newPrice}`);
       showPriceDropBanner(response);
-      showToast(
-        `🎉 Price dropped ${response.savings}%! Check your alerts.`,
-        "success",
-      );
+      showToast(`Price dropped ${response.savings}%!`, "success");
     } else if (response?.priceChanged) {
-      console.log(
-        `📈 Price changed: ${response.oldPrice} → ${response.newPrice}`,
-      );
+      console.log(`📈 Price changed: ${response.oldPrice} → ${response.newPrice}`);
       if (response.newPrice > response.oldPrice) {
-        showToast(
-          `📈 Price increased to ${productData.currency}${response.newPrice}`,
-          "warning",
-        );
+        showToast(`Price increased to ${productData.currency}${response.newPrice}`, "warning");
       }
     } else if (response?.tracked === false) {
-      // Product not tracked, do nothing
       console.log("ℹ️ Product not in tracking list");
     } else {
-      // Price unchanged
       console.log("✅ Price unchanged");
-      showToast("✅ Price checked - no change", "info");
+      showToast("Price checked - no change", "info");
     }
   } catch (error) {
     console.error("Error checking price:", error);
@@ -510,35 +622,39 @@ function showToast(message, type = "info") {
   const existing = document.querySelector("#aliexpress-tracker-toast");
   if (existing) existing.remove();
 
-  const colors = {
-    success: "#10B981",
-    error: "#EF4444",
-    warning: "#F59E0B",
-    info: "#3B82F6",
+  const configs = {
+    success: { bg: "#10B981", icon: ICONS.checkCircle },
+    error: { bg: "#EF4444", icon: ICONS.xCircle },
+    warning: { bg: "#F59E0B", icon: ICONS.alertTriangle },
+    info: { bg: "#3B82F6", icon: ICONS.bell },
   };
+
+  const config = configs[type] || configs.info;
 
   const toast = document.createElement("div");
   toast.id = "aliexpress-tracker-toast";
-  toast.textContent = message;
+  toast.innerHTML = `${config.icon} <span>${message}</span>`;
   toast.style.cssText = `
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    z-index: 2147483647;
-    padding: 12px 20px;
-    background: ${colors[type] || colors.info};
-    color: white;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    animation: slideIn 0.3s ease;
-    max-width: 300px;
+    position: fixed !important;
+    bottom: 80px !important;
+    right: 20px !important;
+    z-index: 2147483647 !important;
+    padding: 12px 20px !important;
+    background: ${config.bg} !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    animation: trackerSlideIn 0.3s ease !important;
+    max-width: 300px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
   `;
 
   document.body.appendChild(toast);
-
   setTimeout(() => toast.remove(), 3000);
 }
 
@@ -554,73 +670,70 @@ function showPriceDropBanner(data) {
   banner.id = "aliexpress-tracker-banner";
   banner.innerHTML = `
     <div style="display: flex; align-items: center; gap: 15px;">
-      <span style="font-size: 32px;">🎉</span>
-      <div>
-        <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px;">Price Dropped!</div>
-        <div style="font-size: 14px;">
+      <div style="
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        ${ICONS.trendingDown}
+      </div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-weight: 700; font-size: 16px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          ${ICONS.sparkles} Price Dropped!
+        </div>
+        <div style="font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <span style="text-decoration: line-through; opacity: 0.7;">${data.currency || "$"}${data.oldPrice}</span>
-          <span style="margin: 0 8px;">→</span>
+          <span>→</span>
           <span style="font-weight: 700; font-size: 18px;">${data.currency || "$"}${data.newPrice}</span>
-          <span style="background: white; color: #10B981; padding: 2px 8px; border-radius: 20px; margin-left: 10px; font-weight: 600;">
-            -${data.savings}%
-          </span>
+          <span style="
+            background: white;
+            color: #10B981;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+          ">-${data.savings}%</span>
         </div>
       </div>
       <button id="aliexpress-tracker-banner-close" style="
-        margin-left: auto;
         background: rgba(255,255,255,0.2);
         border: none;
         color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        font-size: 18px;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-      ">×</button>
+        flex-shrink: 0;
+      ">${ICONS.x}</button>
     </div>
   `;
   banner.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 2147483647;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-    color: white;
-    border-radius: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
-    animation: slideDown 0.4s ease;
-    max-width: 400px;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 2147483647 !important;
+    padding: 20px 24px !important;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+    color: white !important;
+    border-radius: 16px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4) !important;
+    animation: trackerSlideDown 0.4s ease !important;
+    max-width: 420px !important;
   `;
-
-  // Add animation
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes slideDown {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
 
   document.body.appendChild(banner);
 
-  // Close button
-  document
-    .getElementById("aliexpress-tracker-banner-close")
-    ?.addEventListener("click", () => {
-      banner.remove();
-    });
+  document.getElementById("aliexpress-tracker-banner-close")?.addEventListener("click", () => {
+    banner.remove();
+  });
 
-  // Auto-hide after 10 seconds
   setTimeout(() => banner.remove(), 10000);
 }
 
@@ -640,8 +753,6 @@ function init() {
   }
 
   console.log("🛒 AliExpress product page detected");
-
-  // Create track button
   createTrackButton();
 }
 

@@ -1,5 +1,12 @@
 // src/dashboard/pages/Analysis.jsx
 import React, { useState, useEffect } from 'react';
+import {
+  TrendingUp,
+  Lightbulb,
+  CheckCircle,
+  Clock,
+  Loader2
+} from 'lucide-react';
 import PriceChart from '../components/PriceChart';
 
 function Analysis({ selectedProductId }) {
@@ -94,7 +101,10 @@ function Analysis({ selectedProductId }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500 flex items-center gap-2">
+          <Loader2 size={24} className="animate-spin text-orange-500" />
+          Loading...
+        </div>
       </div>
     );
   }
@@ -153,8 +163,9 @@ function Analysis({ selectedProductId }) {
       {/* Price Chart */}
       {selectedProduct && (
         <div className="bg-white rounded-xl p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            📈 Price History
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <TrendingUp size={20} className="text-orange-500" />
+            Price History
           </h2>
           <PriceChart 
             priceHistory={selectedProduct.priceHistory} 
@@ -166,8 +177,9 @@ function Analysis({ selectedProductId }) {
       {/* Recommendation */}
       {selectedProduct && selectedProduct.priceHistory?.length > 1 && (
         <div className="bg-white rounded-xl p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">
-            💡 Recommendation
+          <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Lightbulb size={20} className="text-orange-500" />
+            Recommendation
           </h2>
           {(() => {
             const prices = selectedProduct.priceHistory.map(h => h.price);
@@ -177,25 +189,28 @@ function Analysis({ selectedProductId }) {
             
             if (currentPrice <= minPrice) {
               return (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
+                  <CheckCircle size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                   <p className="text-emerald-700 font-medium">
-                    ✅ This is the LOWEST price recorded! Great time to buy!
+                    This is the LOWEST price recorded! Great time to buy!
                   </p>
                 </div>
               );
             } else if (currentPrice < avgPrice) {
               return (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-3">
+                  <CheckCircle size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                   <p className="text-emerald-700 font-medium">
-                    ✅ Price is below average. Good time to buy!
+                    Price is below average. Good time to buy!
                   </p>
                 </div>
               );
             } else {
               return (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3">
+                  <Clock size={20} className="text-yellow-600 flex-shrink-0 mt-0.5" />
                   <p className="text-yellow-700 font-medium">
-                    ⏳ Price is above average. Consider waiting for a drop.
+                    Price is above average. Consider waiting for a drop.
                   </p>
                 </div>
               );

@@ -12,6 +12,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { BarChart3 } from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(
@@ -31,7 +32,7 @@ function PriceChart({ priceHistory = [], currency = '$' }) {
     return (
       <div className="h-64 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl flex items-center justify-center">
         <div className="text-center text-gray-500">
-          <span className="text-5xl mb-3 block">📊</span>
+          <BarChart3 size={48} className="mx-auto mb-3 text-orange-300" />
           <p className="font-medium">No price history yet</p>
           <p className="text-sm text-gray-400 mt-1">
             Visit the product page to record prices

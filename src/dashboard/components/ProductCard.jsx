@@ -1,5 +1,14 @@
 // src/dashboard/components/ProductCard.jsx
 import React, { useState } from 'react';
+import {
+  TrendingDown,
+  TrendingUp,
+  BarChart3,
+  ExternalLink,
+  Trash2,
+  Loader2,
+  X
+} from 'lucide-react';
 
 function ProductCard({ product, onDelete, onAnalyze }) {
   const [deleting, setDeleting] = useState(false);
@@ -63,16 +72,27 @@ function ProductCard({ product, onDelete, onAnalyze }) {
             <div className="flex gap-2 justify-center">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
               >
+                <X size={14} />
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
               >
-                {deleting ? '⏳ Deleting...' : '🗑️ Delete'}
+                {deleting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    Delete
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -130,7 +150,11 @@ function ProductCard({ product, onDelete, onAnalyze }) {
           <div className={`text-xs font-semibold flex items-center justify-end gap-1 ${
             priceChange.direction === 'down' ? 'text-emerald-500' : 'text-red-500'
           }`}>
-            <span>{priceChange.direction === 'down' ? '↓' : '↑'}</span>
+            {priceChange.direction === 'down' ? (
+              <TrendingDown size={14} />
+            ) : (
+              <TrendingUp size={14} />
+            )}
             <span>{priceChange.percent}%</span>
           </div>
         )}
@@ -143,7 +167,7 @@ function ProductCard({ product, onDelete, onAnalyze }) {
           className="p-2.5 hover:bg-orange-100 rounded-lg transition-colors text-gray-400 hover:text-orange-500"
           title="View price history"
         >
-          📊
+          <BarChart3 size={18} />
         </button>
         <a
           href={product.url}
@@ -152,14 +176,14 @@ function ProductCard({ product, onDelete, onAnalyze }) {
           className="p-2.5 hover:bg-blue-100 rounded-lg transition-colors text-gray-400 hover:text-blue-500"
           title="Open product page"
         >
-          🔗
+          <ExternalLink size={18} />
         </a>
         <button
           onClick={handleDeleteClick}
           className="p-2.5 hover:bg-red-100 rounded-lg transition-colors text-gray-400 hover:text-red-500"
           title="Delete product"
         >
-          🗑️
+          <Trash2 size={18} />
         </button>
       </div>
     </div>

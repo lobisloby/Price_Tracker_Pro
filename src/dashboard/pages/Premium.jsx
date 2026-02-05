@@ -3,6 +3,23 @@
 
 import React, { useState, useEffect } from "react";
 import {
+  Crown,
+  Gift,
+  Package,
+  BarChart3,
+  Bell,
+  Download,
+  Heart,
+  ShoppingCart,
+  Key,
+  CheckCircle,
+  AlertTriangle,
+  Rocket,
+  Loader2,
+  HelpCircle,
+  Check
+} from "lucide-react";
+import {
   isPremium,
   getProductCount,
   activateLicense,
@@ -85,7 +102,15 @@ function Premium() {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="text-4xl">{isPro ? "⭐" : "🆓"}</span>
+            <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+              isPro ? "bg-white/20" : "bg-gray-100"
+            }`}>
+              {isPro ? (
+                <Crown size={28} className="text-white" />
+              ) : (
+                <Gift size={28} className="text-gray-500" />
+              )}
+            </div>
             <div>
               <h2 className={`text-2xl font-bold ${isPro ? "text-white" : "text-gray-800"}`}>
                 {isPro ? "Premium Activated" : "Free Plan"}
@@ -112,9 +137,9 @@ function Premium() {
         )}
 
         {!isPro && productsCount >= 5 && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-4">
-            <p className="text-amber-700 text-sm flex items-center gap-2">
-              <span>⚠️</span>
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-4 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
+            <p className="text-amber-700 text-sm">
               You've reached the free limit. Upgrade to track unlimited products!
             </p>
           </div>
@@ -125,7 +150,9 @@ function Premium() {
       {!isPro && (
         <div className="bg-white rounded-2xl p-6 shadow-lg border-2 border-orange-200">
           <div className="text-center mb-6">
-            <span className="text-5xl mb-4 block">🚀</span>
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Rocket size={32} className="text-orange-500" />
+            </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">
               Upgrade to Premium
             </h3>
@@ -139,35 +166,45 @@ function Premium() {
           {/* Features */}
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <span className="text-xl">📦</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Package size={20} className="text-orange-500" />
+              </div>
               <div>
                 <p className="font-medium text-gray-800">Unlimited Products</p>
                 <p className="text-sm text-gray-500">Track as many products as you want</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <span className="text-xl">📊</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <BarChart3 size={20} className="text-orange-500" />
+              </div>
               <div>
                 <p className="font-medium text-gray-800">Full Price History</p>
                 <p className="text-sm text-gray-500">See all historical price data</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <span className="text-xl">🔔</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Bell size={20} className="text-orange-500" />
+              </div>
               <div>
                 <p className="font-medium text-gray-800">Instant Notifications</p>
                 <p className="text-sm text-gray-500">Never miss a price drop</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <span className="text-xl">💾</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Download size={20} className="text-orange-500" />
+              </div>
               <div>
                 <p className="font-medium text-gray-800">Export Data</p>
                 <p className="text-sm text-gray-500">Download your data anytime</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <span className="text-xl">❤️</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Heart size={20} className="text-orange-500" />
+              </div>
               <div>
                 <p className="font-medium text-gray-800">Support Development</p>
                 <p className="text-sm text-gray-500">Help keep this extension alive</p>
@@ -180,7 +217,7 @@ function Premium() {
             onClick={openStore}
             className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-bold text-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
           >
-            <span>🛒</span>
+            <ShoppingCart size={20} />
             Get Premium - $3
           </button>
 
@@ -193,7 +230,7 @@ function Premium() {
       {/* License Key Activation */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span>🔑</span>
+          <Key size={20} className="text-orange-500" />
           {isPro ? "License Status" : "Already have a license key?"}
         </h3>
 
@@ -201,7 +238,7 @@ function Premium() {
           <div className="space-y-4">
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
               <div className="flex items-center gap-2 text-emerald-700 mb-2">
-                <span className="text-xl">✅</span>
+                <CheckCircle size={20} />
                 <span className="font-semibold">License Active</span>
               </div>
               <p className="text-emerald-600 text-sm">
@@ -251,7 +288,7 @@ function Premium() {
               >
                 {activating ? (
                   <span className="flex items-center gap-2">
-                    <span className="animate-spin">⏳</span>
+                    <Loader2 size={16} className="animate-spin" />
                     Checking...
                   </span>
                 ) : (
@@ -266,26 +303,28 @@ function Premium() {
       {/* Developer Message */}
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
         <div className="flex items-start gap-4">
-          <span className="text-3xl">💙</span>
+          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Heart size={24} className="text-blue-500" />
+          </div>
           <div>
             <h4 className="font-semibold text-gray-800 mb-2">
               Built with love by one developer
             </h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500">✓</span>
+                <Check size={16} className="text-emerald-500" />
                 The free version will always exist
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500">✓</span>
+                <Check size={16} className="text-emerald-500" />
                 Premium helps me continue improving this extension
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500">✓</span>
+                <Check size={16} className="text-emerald-500" />
                 One-time payment — no subscriptions, ever
               </li>
               <li className="flex items-center gap-2">
-                <span className="text-emerald-500">✓</span>
+                <Check size={16} className="text-emerald-500" />
                 Your license key works forever
               </li>
             </ul>
@@ -299,7 +338,7 @@ function Premium() {
       {/* FAQ */}
       <div className="bg-white rounded-2xl p-6 shadow-lg">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <span>❓</span>
+          <HelpCircle size={20} className="text-orange-500" />
           Frequently Asked Questions
         </h3>
 

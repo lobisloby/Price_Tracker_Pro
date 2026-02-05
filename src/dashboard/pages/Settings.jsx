@@ -2,6 +2,20 @@
 // ✅ LOCAL STORAGE ONLY - Email/Telegram options hidden
 
 import React, { useState, useEffect } from "react";
+import {
+  Bell,
+  Globe,
+  Hash,
+  Info,
+  Database,
+  Download,
+  Upload,
+  Trash2,
+  Save,
+  CheckCircle,
+  Lightbulb,
+  Loader2
+} from "lucide-react";
 
 function Settings() {
   const [settings, setSettings] = useState({
@@ -189,7 +203,10 @@ function Settings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading settings...</div>
+        <div className="text-gray-500 flex items-center gap-2">
+          <Loader2 size={24} className="animate-spin text-orange-500" />
+          Loading settings...
+        </div>
       </div>
     );
   }
@@ -198,15 +215,18 @@ function Settings() {
     <div className="space-y-6 max-w-2xl">
       {/* Notifications */}
       <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          🔔 Notifications
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Bell size={20} className="text-orange-500" />
+          Notifications
         </h2>
 
         <div className="space-y-4">
           {/* Browser Notifications */}
           <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
-              <span className="text-xl">🌐</span>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Globe size={20} className="text-orange-500" />
+              </div>
               <div>
                 <div className="font-medium text-gray-800">
                   Browser Notifications
@@ -229,7 +249,9 @@ function Settings() {
           {/* Badge */}
           <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
             <div className="flex items-center gap-3">
-              <span className="text-xl">🔢</span>
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Hash size={20} className="text-blue-500" />
+              </div>
               <div>
                 <div className="font-medium text-gray-800">Extension Badge</div>
                 <div className="text-xs text-gray-500">
@@ -249,8 +271,9 @@ function Settings() {
 
       {/* How It Works */}
       <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          ℹ️ How Price Tracking Works
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Info size={20} className="text-orange-500" />
+          How Price Tracking Works
         </h2>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800 text-sm">
@@ -263,33 +286,38 @@ function Settings() {
 
       {/* Data Management */}
       <div className="bg-white rounded-xl p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          🗄️ Data Management
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Database size={20} className="text-orange-500" />
+          Data Management
         </h2>
 
         <div className="flex flex-wrap gap-3">
           <button
             onClick={exportData}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
           >
-            📤 Export Data
+            <Download size={16} />
+            Export Data
           </button>
           <button
             onClick={importData}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
           >
-            📥 Import Data
+            <Upload size={16} />
+            Import Data
           </button>
           <button
             onClick={clearAllData}
-            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
           >
-            🗑️ Clear All Data
+            <Trash2 size={16} />
+            Clear All Data
           </button>
         </div>
 
-        <p className="text-xs text-gray-500 mt-3">
-          💡 Tip: Export your data regularly to keep a backup of your tracked products and price history.
+        <p className="text-xs text-gray-500 mt-3 flex items-start gap-1.5">
+          <Lightbulb size={14} className="flex-shrink-0 mt-0.5" />
+          Tip: Export your data regularly to keep a backup of your tracked products and price history.
         </p>
       </div>
 
@@ -297,12 +325,23 @@ function Settings() {
       <div className="flex items-center gap-4">
         <button
           onClick={saveSettings}
-          className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
         >
-          {saved ? "✅ Saved!" : "💾 Save Settings"}
+          {saved ? (
+            <>
+              <CheckCircle size={18} />
+              Saved!
+            </>
+          ) : (
+            <>
+              <Save size={18} />
+              Save Settings
+            </>
+          )}
         </button>
         {saved && (
-          <span className="text-emerald-500 text-sm">
+          <span className="text-emerald-500 text-sm flex items-center gap-1">
+            <CheckCircle size={14} />
             Settings saved successfully!
           </span>
         )}
