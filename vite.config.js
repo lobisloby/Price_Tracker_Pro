@@ -13,48 +13,75 @@ const copyStaticFilesPlugin = () => ({
     if (!existsSync('dist/icons')) {
       mkdirSync('dist/icons', { recursive: true });
     }
-    
+
     // Copy manifest.json
-    copyFileSync('public/manifest.json', 'dist/manifest.json');
-    console.log('✅ Copied manifest.json');
-    
+    if (existsSync('public/manifest.json')) {
+      copyFileSync('public/manifest.json', 'dist/manifest.json');
+      console.log('✅ Copied manifest.json');
+    }
+
     // Copy all icons
     const iconsDir = 'public/icons';
     if (existsSync(iconsDir)) {
       const icons = readdirSync(iconsDir);
-      icons.forEach(icon => {
+      icons.forEach((icon) => {
         copyFileSync(`${iconsDir}/${icon}`, `dist/icons/${icon}`);
         console.log(`✅ Copied ${icon}`);
       });
     }
-  }
+  },
 });
 
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    copyStaticFilesPlugin(),
-  ],
-  build: {
-    outDir: 'dist',
-    emptyDirBeforeWrite: true,
-    rollupOptions: {
-      input: {
-        popup: resolve(__dirname, 'index.html'),
-        dashboard: resolve(__dirname, 'dashboard.html'),
-        background: resolve(__dirname, 'src/background/background.js'),
-        content: resolve(__dirname, 'src/content/content.js'),
-      },
-      output: {
-        entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'background') return 'background.js';
-          if (chunkInfo.name === 'content') return 'content.js';
-          return 'assets/[name]-[hash].js';
+export default defineConfig(({ mode }) => {
+  const isProduction = mode === 'production';
+
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      copyStaticFilesPlugin(),
+    ],
+
+    build: {
+      outDir: 'dist',
+      emptyDirBeforeWrite: true,
+
+      // Minification settings for production
+      minify: isProduction ? 'terser' : false,
+      terserOptions: isProduction
+        ? {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
+            mangle: true,
+          }
+        : undefined,
+
+      rollupOptions: {
+        input: {
+          popup: resolve(__dirname, 'index.html'),
+          dashboard: resolve(__dirname, 'dashboard.html'),
+          background: resolve(__dirname, 'src/background/background.js'),
+          content: resolve(__dirname, 'src/content/content.js'),
         },
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]',
+        output: {
+          entryFileNames: (chunkInfo) => {
+            if (chunkInfo.name === 'background') return 'background.js';
+            if (chunkInfo.name === 'content') return 'content.js';
+            return 'assets/[name]-[hash].js';
+          },
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+        },
       },
     },
-  },
+
+    // Resolve aliases
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, './src'),
+      },
+    },
+  };
 });

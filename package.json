@@ -1,11 +1,16 @@
 {
   "name": "price-tracker-pro",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:prod": "vite build --mode production",
+    "obfuscate": "node scripts/obfuscate.cjs",
+    "build:secure": "npm run build:prod && npm run obfuscate",
+    "zip": "node scripts/zip.cjs",
+    "package": "npm run build:secure && npm run zip",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -22,13 +27,16 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "archiver": "^7.0.1",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "javascript-obfuscator": "^4.1.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
+    "terser": "^5.31.0",
     "vite": "^7.2.4"
   }
 }
