@@ -1,6 +1,6 @@
 // src/content/content.js
 // AliExpress Price Tracker Pro - Content Script
-// ✅ Safe Version with Professional SVG Icons
+// ✅ Updated Version with Coupon Overlay Fix & Enhanced Price Detection
 
 console.log("✅ AliExpress Price Tracker: Content script loaded!");
 
@@ -133,16 +133,214 @@ function isProductPage() {
 }
 
 // ============================================
+// COUPON OVERLAY HANDLER
+// ============================================
+
+function closeCouponOverlays() {
+  const closeButtonSelectors = [
+    // Common coupon/popup close buttons
+    '[class*="coupon"] [class*="close"]',
+    '[class*="Coupon"] [class*="close"]',
+    '[class*="modal"] [class*="close"]',
+    '[class*="Modal"] [class*="close"]',
+    '[class*="popup"] [class*="close"]',
+    '[class*="Popup"] [class*="close"]',
+    '[class*="overlay"] [class*="close"]',
+    '[class*="banner"] [class*="close"]',
+    '[class*="Dialog"] [class*="close"]',
+    '[class*="dialog"] [class*="close"]',
+    
+    // AliExpress specific close buttons
+    '.comet-modal-close',
+    '.comet-icon-close',
+    '[class*="comet-icon-close"]',
+    '[class*="bax-close"]',
+    '[class*="next-dialog-close"]',
+    '[class*="coupon-pop"] [class*="close"]',
+    '[class*="floating"] [class*="close"]',
+    '[class*="pop-up"] [class*="close"]',
+    '[class*="newcomer"] [class*="close"]',
+    '[class*="Newcomer"] [class*="close"]',
+    
+    // Generic close buttons
+    'button[aria-label="Close"]',
+    'button[aria-label="close"]',
+    '[role="dialog"] button[class*="close"]',
+    '.next-icon-close',
+    
+    // Additional AliExpress 2024 selectors
+    '[class*="lazada-ic"] [class*="close"]',
+    '[class*="coupon-banner"] [class*="close"]',
+    '[class*="promotion-popup"] [class*="close"]',
+  ];
+
+  let closedCount = 0;
+
+  for (const selector of closeButtonSelectors) {
+    try {
+      const closeButtons = document.querySelectorAll(selector);
+      closeButtons.forEach((btn) => {
+        // Only click if visible and not already processed
+        const rect = btn.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0 && btn.offsetParent !== null) {
+          btn.click();
+          closedCount++;
+        }
+      });
+    } catch (e) {
+      // Silently ignore errors
+    }
+  }
+
+  // Also try to remove/hide overlay elements that block price
+  const overlaySelectors = [
+    '[class*="coupon-overlay"]',
+    '[class*="modal-mask"]',
+    '[class*="popup-mask"]',
+    '.comet-modal-mask',
+    '[class*="newcomer-popup"]',
+    '[class*="coupon-popup"]',
+    '[class*="floating-coupon"]',
+  ];
+
+  for (const selector of overlaySelectors) {
+    try {
+      const overlays = document.querySelectorAll(selector);
+      overlays.forEach((overlay) => {
+        overlay.style.display = 'none';
+        overlay.style.visibility = 'hidden';
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+      });
+    } catch (e) {
+      // Silently ignore
+    }
+  }
+
+  if (closedCount > 0) {
+    console.log(`🔄 Closed ${closedCount} overlay(s)`);
+  }
+
+  return closedCount;
+}
+
+// ============================================
+// FALLBACK PRICE FINDER
+// ============================================
+
+function findPriceInPage() {
+  // Price patterns for different currencies
+  const pricePatterns = [
+    /[$]\s*[\d,]+\.?\d*/g,
+    /€\s*[\d,]+\.?\d*/g,
+    /£\s*[\d,]+\.?\d*/g,
+    /¥\s*[\d,]+/g,
+    /₽\s*[\d\s,]+/g,
+    /₹\s*[\d,]+\.?\d*/g,
+    /MAD\s*[\d,]+\.?\d*/g,
+    /US\s*\$\s*[\d,]+\.?\d*/g,
+    /[\d,]+\.?\d*\s*[$€£¥₽₹]/g,
+  ];
+
+  // Look in specific price containers first
+  const priceContainers = document.querySelectorAll(`
+    [class*="price"],
+    [class*="Price"],
+    [data-spm="price"],
+    [class*="snow-price"],
+    [class*="product-price"],
+    [class*="es--wrap"]
+  `);
+
+  for (const container of priceContainers) {
+    const text = container.textContent?.trim();
+    if (!text || text.length > 50) continue;
+
+    // Skip if it's a crossed-out price
+    try {
+      const style = window.getComputedStyle(container);
+      if (style.textDecoration.includes('line-through')) continue;
+    } catch (e) {
+      // Ignore
+    }
+
+    for (const pattern of pricePatterns) {
+      const matches = text.match(pattern);
+      if (matches && matches.length > 0) {
+        // Return the first match that looks like a valid price
+        for (const match of matches) {
+          const numMatch = match.match(/[\d,.]+/);
+          if (numMatch) {
+            const num = parseFloat(numMatch[0].replace(/,/g, ''));
+            if (num > 0 && num < 100000) {
+              console.log("💰 Fallback price found:", match);
+              return match;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return "0";
+}
+
+// ============================================
+// PARSE PRICE STRING
+// ============================================
+
+function parsePrice(priceStr) {
+  if (!priceStr) return 0;
+  
+  const priceMatch = priceStr.match(/[\d.,]+/);
+  if (!priceMatch) return 0;
+  
+  let cleanPrice = priceMatch[0];
+  
+  // Handle different number formats
+  if (cleanPrice.includes(",") && cleanPrice.includes(".")) {
+    const lastComma = cleanPrice.lastIndexOf(",");
+    const lastDot = cleanPrice.lastIndexOf(".");
+    if (lastComma > lastDot) {
+      // European format: 1.234,56
+      cleanPrice = cleanPrice.replace(/\./g, "").replace(",", ".");
+    } else {
+      // US format: 1,234.56
+      cleanPrice = cleanPrice.replace(/,/g, "");
+    }
+  } else if (cleanPrice.includes(",") && !cleanPrice.includes(".")) {
+    const parts = cleanPrice.split(",");
+    if (parts[1] && parts[1].length <= 2) {
+      // Likely decimal (European): 12,99
+      cleanPrice = cleanPrice.replace(",", ".");
+    } else {
+      // Likely thousands separator: 1,234
+      cleanPrice = cleanPrice.replace(",", "");
+    }
+  }
+  
+  return parseFloat(cleanPrice) || 0;
+}
+
+// ============================================
 // EXTRACT PRODUCT DATA
 // ============================================
 
 function extractProductData() {
   try {
+    // STEP 1: Close any coupon overlays first
+    closeCouponOverlays();
+    
+    // STEP 2: Extract title
     const titleSelectors = [
       'h1[data-pl="product-title"]',
       ".product-title-text",
       "h1.pdp-mod-product-badge-title",
       ".pdp-info h1",
+      '[class*="title--wrap"] h1',
+      '[class*="ProductTitle"] h1',
+      '[class*="product-title"] h1',
+      'h1[class*="title"]',
       "h1",
     ];
 
@@ -155,45 +353,143 @@ function extractProductData() {
       }
     }
 
+    // STEP 3: Extract price with enhanced selectors
     const priceSelectors = [
+      // ===== STANDARD PRICE SELECTORS =====
       ".product-price-value",
       ".uniform-banner-box-price",
-      '[class*="price--current"] span',
       ".pdp-mod-product-badge-price",
+      
+      // ===== NEW ALIEXPRESS UI (2024) =====
+      '[class*="price--currentPriceText"]',
+      '[class*="price--current--"] span',
+      '[class*="product-price-current"]',
+      '[class*="es--wrap--erdmtq8"] span',
+      '[class*="es--wrap"] span[class*="notranslate"]',
+      
+      // ===== SNOW PRICE COMPONENT =====
+      '[class*="snow-price_SnowPrice"]',
+      '[class*="snow-price"] [class*="main"]',
+      '.snow-price_SnowPrice__mainS',
+      '[class*="snow-price"]',
+      
+      // ===== COUPON/DISCOUNT PRICES =====
+      '[class*="coupon-price"]',
+      '[class*="discount-price"]',
+      '[class*="sale-price"]',
+      '[class*="promo-price"]',
+      '[class*="uniform-banner"] [class*="price"]',
+      
+      // ===== PRICES BEHIND COUPON OVERLAYS =====
+      '[class*="price--highlight"] span',
+      '[class*="price--promotion"] span',
+      '[class*="price--sale"] span',
+      '[class*="price-highlight"]',
+      '[class*="price--bold"]',
+      '[class*="price--current"]',
+      
+      // ===== SKU/VARIANT PRICES =====
+      '[class*="sku-item--price"]',
+      '[class*="sku-price"]',
+      '[class*="product-sku"] [class*="price"]',
+      '[class*="selected"] [class*="price"]',
+      
+      // ===== MOBILE SELECTORS =====
+      '[class*="pdp-price"]',
+      '[class*="m-price"]',
+      '[class*="price-current"]',
+      
+      // ===== DATA ATTRIBUTE SELECTORS =====
+      '[data-spm="price"] span',
+      '[data-pl="product-price"]',
+      '[data-role="price"]',
+      
+      // ===== GENERIC FALLBACKS =====
       '[class*="Price"] span',
-      ".es--wrap--erdmtq8 span",
+      '[class*="price"] span[class*="notranslate"]',
+      '[class*="notranslate"][class*="price"]',
+      '[class*="formatted-price"]',
     ];
 
     let priceText = "0";
+    let priceFound = false;
+
     for (const selector of priceSelectors) {
-      const element = document.querySelector(selector);
-      if (element?.textContent?.trim()) {
-        priceText = element.textContent.trim();
-        break;
+      try {
+        const elements = document.querySelectorAll(selector);
+        
+        for (const element of elements) {
+          const text = element?.textContent?.trim();
+          
+          // Validate the price text
+          if (
+            text &&
+            /[\d.,]+/.test(text) &&
+            text.length < 30 &&
+            element.offsetParent !== null // Element is visible
+          ) {
+            // Skip crossed-out/original prices
+            const parent = element.closest(
+              '[class*="origin"], [class*="Origin"], [class*="del"], [style*="line-through"], [class*="original"], [class*="Original"], [class*="was-price"], [class*="old-price"]'
+            );
+            if (parent) continue;
+
+            // Check computed style for line-through
+            try {
+              const computedStyle = window.getComputedStyle(element);
+              if (computedStyle.textDecoration.includes("line-through")) continue;
+              
+              // Also check parent's text-decoration
+              if (element.parentElement) {
+                const parentStyle = window.getComputedStyle(element.parentElement);
+                if (parentStyle.textDecoration.includes("line-through")) continue;
+              }
+            } catch (e) {
+              // Ignore style check errors
+            }
+
+            priceText = text;
+            priceFound = true;
+            console.log(`✅ Price found with: "${selector}"`, priceText);
+            break;
+          }
+        }
+
+        if (priceFound) break;
+      } catch (e) {
+        // Continue to next selector
       }
     }
 
-    const priceMatch = priceText.match(/[\d.,]+/);
-    let price = 0;
-    if (priceMatch) {
-      let priceStr = priceMatch[0];
-      if (priceStr.includes(",") && !priceStr.includes(".")) {
-        priceStr = priceStr.replace(",", ".");
-      } else {
-        priceStr = priceStr.replace(",", "");
+    // STEP 4: Fallback - search for price patterns
+    if (!priceFound || priceText === "0") {
+      console.log("⚠️ Primary selectors failed, trying fallback...");
+      const fallbackPrice = findPriceInPage();
+      if (fallbackPrice !== "0") {
+        priceText = fallbackPrice;
+        priceFound = true;
       }
-      price = parseFloat(priceStr) || 0;
     }
 
-    const currencyMatch = priceText.match(/[$€£¥₽]/);
+    // STEP 5: Parse the price
+    const price = parsePrice(priceText);
+
+    // STEP 6: Extract currency
+    const currencyMatch = priceText.match(/[$€£¥₽₹]|MAD|USD|EUR|GBP/);
     const currency = currencyMatch ? currencyMatch[0] : "$";
 
+    // STEP 7: Extract image
     const imageSelectors = [
       ".magnifier-image",
       ".pdp-mod-product-badge-img img",
       '[class*="slider"] img',
       ".images-view-item img",
       ".product-image img",
+      '[class*="gallery"] img',
+      '[class*="Gallery"] img',
+      '[class*="image-view"] img',
+      '[class*="main-image"] img',
+      '[class*="product-img"] img',
     ];
 
     let image = "";
@@ -205,6 +501,7 @@ function extractProductData() {
       }
     }
 
+    // STEP 8: Extract product ID
     const urlMatch = window.location.pathname.match(/\/item\/(\d+)/);
     const productId = urlMatch ? urlMatch[1] : Date.now().toString();
 
@@ -227,7 +524,34 @@ function extractProductData() {
 }
 
 // ============================================
-// BUTTON STYLES (keeping inline for safety)
+// EXTRACT WITH RETRY (For resilience)
+// ============================================
+
+async function extractProductDataWithRetry(maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    // Close overlays before each attempt
+    closeCouponOverlays();
+    
+    // Wait a bit for DOM to stabilize
+    await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    
+    const data = extractProductData();
+    
+    if (data && data.price > 0) {
+      return data;
+    }
+    
+    console.log(`⏳ Retry ${attempt}/${maxRetries} - price not found yet`);
+  }
+  
+  // Final attempt with longer wait
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  closeCouponOverlays();
+  return extractProductData();
+}
+
+// ============================================
+// BUTTON STYLES
 // ============================================
 
 const buttonStyles = {
@@ -295,7 +619,7 @@ function createTrackButton() {
   button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
   button.style.cssText = buttonStyles.button;
 
-  // Hover effects (keeping original approach)
+  // Hover effects
   button.addEventListener("mouseenter", () => {
     if (!button.disabled) {
       button.style.cssText = buttonStyles.button + buttonStyles.buttonHover;
@@ -499,23 +823,34 @@ async function handleTrackClick() {
   const button = document.querySelector("#aliexpress-tracker-btn");
   if (!button) return;
 
-  const productData = extractProductData();
+  // Loading state
+  button.innerHTML = `${ICONS.loader} <span>Analyzing...</span>`;
+  button.style.cssText = buttonStyles.button + buttonStyles.buttonChecking;
+  button.disabled = true;
+
+  // Close any overlays first
+  closeCouponOverlays();
+
+  // Try to extract with retry
+  const productData = await extractProductDataWithRetry(3);
 
   if (!productData || productData.price === 0) {
     button.innerHTML = `${ICONS.alertTriangle} <span>Could not get price</span>`;
     button.style.cssText = buttonStyles.button + buttonStyles.buttonWarning;
+    button.disabled = false;
+
+    // Show helpful toast
+    showToast("Try closing any popups and retry", "warning");
 
     setTimeout(() => {
       button.innerHTML = `${ICONS.search} <span>Track Price</span>`;
       button.style.cssText = buttonStyles.button;
-    }, 2000);
+    }, 3000);
     return;
   }
 
-  // Loading state
+  // Update button to show we're tracking
   button.innerHTML = `${ICONS.loader} <span>Tracking...</span>`;
-  button.style.cssText = buttonStyles.button + buttonStyles.buttonChecking;
-  button.disabled = true;
 
   try {
     const response = await chrome.runtime.sendMessage({
@@ -533,7 +868,7 @@ async function handleTrackClick() {
       if (!response.isPro && remaining <= 2) {
         showToast(`Tracked! ${remaining} free slots left`, "warning");
       } else {
-        showToast("Product added to tracking!", "success");
+        showToast(`Tracking at ${productData.currency}${productData.price}`, "success");
       }
     } else if (response?.error === "limit_reached") {
       button.innerHTML = `${ICONS.lock} <span>Limit Reached</span>`;
@@ -580,7 +915,10 @@ async function handleTrackClick() {
 // ============================================
 
 async function checkForPriceChanges() {
-  const productData = extractProductData();
+  // Close overlays before checking
+  closeCouponOverlays();
+  
+  const productData = await extractProductDataWithRetry(2);
   if (!productData || productData.price === 0) return;
 
   try {
@@ -753,7 +1091,14 @@ function init() {
   }
 
   console.log("🛒 AliExpress product page detected");
-  createTrackButton();
+  
+  // Close overlays immediately
+  closeCouponOverlays();
+  
+  // Create button after short delay
+  setTimeout(() => {
+    createTrackButton();
+  }, 500);
 }
 
 // Run when DOM is ready
@@ -763,8 +1108,14 @@ if (document.readyState === "loading") {
   init();
 }
 
-// Also run after a delay (for dynamic content)
-setTimeout(init, 2000);
+// Also run after delays for dynamic content
+setTimeout(init, 1500);
+setTimeout(init, 3000);
+
+// Close overlays periodically in first few seconds
+setTimeout(closeCouponOverlays, 1000);
+setTimeout(closeCouponOverlays, 2000);
+setTimeout(closeCouponOverlays, 4000);
 
 // Listen for page navigation (SPA)
 let lastUrl = location.href;
