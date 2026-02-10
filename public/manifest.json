@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AliExpress Price Tracker Pro",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Track AliExpress product prices and get alerts when they drop!",
   
   "action": {
