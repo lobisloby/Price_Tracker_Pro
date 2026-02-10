@@ -34,6 +34,17 @@ export const removeFromStorage = async (key) => {
 };
 
 /**
+ * Get multiple keys from Chrome storage
+ */
+export const getMultipleFromStorage = async (keys) => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, (result) => {
+      resolve(result || {});
+    });
+  });
+};
+
+/**
  * Get all stored products
  */
 export const getProducts = async () => {

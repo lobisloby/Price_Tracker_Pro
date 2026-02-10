@@ -1,5 +1,6 @@
 // src/dashboard/pages/Premium.jsx
 // Simple one-card Premium page with LemonSqueezy integration
+// ✅ Updated to use secure license system
 
 import React, { useState, useEffect } from "react";
 import {
@@ -17,7 +18,7 @@ import {
   Rocket,
   Loader2,
   HelpCircle,
-  Check
+  Check,
 } from "lucide-react";
 import {
   isPremium,
@@ -35,6 +36,7 @@ function Premium() {
   const [productsCount, setProductsCount] = useState(0);
   const [licenseData, setLicenseData] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -42,14 +44,20 @@ function Premium() {
 
   const loadData = async () => {
     try {
-      if (typeof chrome !== "undefined" && chrome.storage) {
-        const result = await chrome.storage.local.get(["isPro", "products", "licenseData"]);
-        setIsPro(result.isPro || false);
-        setProductsCount(result.products?.length || 0);
-        setLicenseData(result.licenseData || null);
-      }
+      setLoading(true);
+
+      // ✅ Use secure license check instead of raw storage
+      const licenseInfo = await getLicenseInfo();
+      setIsPro(licenseInfo.isPro);
+      setLicenseData(licenseInfo.licenseData || null);
+
+      // Get product count
+      const count = await getProductCount();
+      setProductsCount(count);
     } catch (error) {
       console.error("Error loading data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,15 +70,21 @@ function Premium() {
     setActivating(true);
     setError("");
 
-    const result = await activateLicense(licenseKey);
+    try {
+      // ✅ activateLicense now stores secure token
+      const result = await activateLicense(licenseKey);
 
-    if (result.success) {
-      setIsPro(true);
-      setLicenseData(result.data);
-      setLicenseKey("");
-      alert("🎉 License activated! Welcome to Premium!");
-    } else {
-      setError(result.error || "Invalid license key. Please try again.");
+      if (result.success) {
+        setIsPro(true);
+        setLicenseData(result.data);
+        setLicenseKey("");
+        alert("🎉 License activated! Welcome to Premium!");
+      } else {
+        setError(result.error || "Invalid license key. Please try again.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+      console.error("Activation error:", err);
     }
 
     setActivating(false);
@@ -78,6 +92,7 @@ function Premium() {
 
   const handleDeactivate = async () => {
     if (confirm("Are you sure you want to deactivate your license?")) {
+      // ✅ deactivateLicense now clears secure tokens
       await deactivateLicense();
       setIsPro(false);
       setLicenseData(null);
@@ -86,9 +101,19 @@ function Premium() {
   };
 
   const openStore = () => {
-    // Replace with your actual LemonSqueezy store URL
-    window.open("https://pricetrackerr.lemonsqueezy.com/checkout/buy/4a86e7a2-ab7e-4e2e-b1be-b3c64c1ff4d1", "_blank");
+    window.open(
+      "https://pricetrackerr.lemonsqueezy.com/checkout/buy/4a86e7a2-ab7e-4e2e-b1be-b3c64c1ff4d1",
+      "_blank"
+    );
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={32} className="animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -102,9 +127,11 @@ function Premium() {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-              isPro ? "bg-white/20" : "bg-gray-100"
-            }`}>
+            <div
+              className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+                isPro ? "bg-white/20" : "bg-gray-100"
+              }`}
+            >
               {isPro ? (
                 <Crown size={28} className="text-white" />
               ) : (
@@ -112,11 +139,15 @@ function Premium() {
               )}
             </div>
             <div>
-              <h2 className={`text-2xl font-bold ${isPro ? "text-white" : "text-gray-800"}`}>
+              <h2
+                className={`text-2xl font-bold ${isPro ? "text-white" : "text-gray-800"}`}
+              >
                 {isPro ? "Premium Activated" : "Free Plan"}
               </h2>
               <p className={isPro ? "text-white/80" : "text-gray-500"}>
-                {isPro ? "Unlimited products forever!" : `${productsCount}/5 products used`}
+                {isPro
+                  ? "Unlimited products forever!"
+                  : `${productsCount}/5 products used`}
               </p>
             </div>
           </div>
@@ -138,9 +169,13 @@ function Premium() {
 
         {!isPro && productsCount >= 5 && (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mt-4 flex items-center gap-2">
-            <AlertTriangle size={18} className="text-amber-600 flex-shrink-0" />
+            <AlertTriangle
+              size={18}
+              className="text-amber-600 flex-shrink-0"
+            />
             <p className="text-amber-700 text-sm">
-              You've reached the free limit. Upgrade to track unlimited products!
+              You've reached the free limit. Upgrade to track unlimited
+              products!
             </p>
           </div>
         )}
@@ -160,7 +195,9 @@ function Premium() {
               <span className="text-4xl font-bold text-orange-500">$3</span>
               <span className="text-gray-500">one-time payment</span>
             </div>
-            <p className="text-sm text-gray-400 mt-1">Pay once, use forever!</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Pay once, use forever!
+            </p>
           </div>
 
           {/* Features */}
@@ -171,7 +208,9 @@ function Premium() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">Unlimited Products</p>
-                <p className="text-sm text-gray-500">Track as many products as you want</p>
+                <p className="text-sm text-gray-500">
+                  Track as many products as you want
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
@@ -180,7 +219,9 @@ function Premium() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">Full Price History</p>
-                <p className="text-sm text-gray-500">See all historical price data</p>
+                <p className="text-sm text-gray-500">
+                  See all historical price data
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
@@ -188,7 +229,9 @@ function Premium() {
                 <Bell size={20} className="text-orange-500" />
               </div>
               <div>
-                <p className="font-medium text-gray-800">Instant Notifications</p>
+                <p className="font-medium text-gray-800">
+                  Instant Notifications
+                </p>
                 <p className="text-sm text-gray-500">Never miss a price drop</p>
               </div>
             </div>
@@ -198,7 +241,9 @@ function Premium() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">Export Data</p>
-                <p className="text-sm text-gray-500">Download your data anytime</p>
+                <p className="text-sm text-gray-500">
+                  Download your data anytime
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
@@ -207,7 +252,9 @@ function Premium() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">Support Development</p>
-                <p className="text-sm text-gray-500">Help keep this extension alive</p>
+                <p className="text-sm text-gray-500">
+                  Help keep this extension alive
+                </p>
               </div>
             </div>
           </div>
@@ -246,7 +293,8 @@ function Premium() {
               </p>
               {licenseData?.activatedAt && (
                 <p className="text-emerald-500 text-xs mt-2">
-                  Activated: {new Date(licenseData.activatedAt).toLocaleDateString()}
+                  Activated:{" "}
+                  {new Date(licenseData.activatedAt).toLocaleDateString()}
                 </p>
               )}
             </div>
@@ -365,7 +413,8 @@ function Premium() {
               What payment methods do you accept?
             </h4>
             <p className="text-gray-600 text-sm">
-              We accept credit cards, PayPal, and Apple Pay through LemonSqueezy.
+              We accept credit cards, PayPal, and Apple Pay through
+              LemonSqueezy.
             </p>
           </div>
           <div>
@@ -373,7 +422,8 @@ function Premium() {
               Do you offer refunds?
             </h4>
             <p className="text-gray-600 text-sm">
-              Yes! If you're not satisfied, contact me within 14 days for a full refund.
+              Yes! If you're not satisfied, contact me within 14 days for a
+              full refund.
             </p>
           </div>
         </div>

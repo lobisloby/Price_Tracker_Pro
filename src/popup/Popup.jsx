@@ -1,5 +1,5 @@
 // src/popup/Popup.jsx
-// ✅ Updated with professional Lucide icons
+// ✅ Updated with secure license check
 
 import React, { useState, useEffect } from "react";
 import {
@@ -20,6 +20,7 @@ import {
   Loader2,
   ShoppingBag,
 } from "lucide-react";
+import { isPremium } from "../utils/license";
 import icon48 from "../assets/icons/icon48.png";
 
 const FREE_LIMIT = 5;
@@ -37,14 +38,17 @@ function Popup() {
   const loadData = async () => {
     try {
       if (typeof chrome !== "undefined" && chrome.storage) {
+        // ✅ Use secure license check instead of raw storage
+        const premiumStatus = await isPremium();
+        setIsPro(premiumStatus);
+
+        // Get products and stats normally
         const result = await chrome.storage.local.get([
           "products",
           "alerts",
           "stats",
-          "isPro",
         ]);
         setProducts(result.products || []);
-        setIsPro(result.isPro || false);
 
         const recentDrops = (result.alerts || []).filter((alert) => {
           const alertTime = new Date(alert.time);
@@ -344,7 +348,7 @@ function Popup() {
       <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100 text-xs text-gray-400 bg-gray-50">
         <span className="flex items-center gap-1">
           <Sparkles size={10} />
-          v1.0.1
+          v1.0.2
         </span>
         <div className="flex gap-4">
           {!isPro && (

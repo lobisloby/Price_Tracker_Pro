@@ -1,9 +1,9 @@
 // src/background/background.js
 // AliExpress Price Tracker Pro - Background Script
-// ✅ LOCAL STORAGE ONLY - No webhooks/Supabase
+// ✅ Secure License Verification + Local Storage
 
 console.log(
-  "✅ AliExpress Price Tracker: Background script loaded (Local Mode)!",
+  "✅ AliExpress Price Tracker: Background script loaded!"
 );
 
 // ============================================
@@ -14,12 +14,239 @@ const CONFIG = {
   alarms: {
     DAILY_REMINDER: "daily-reminder",
     CLEANUP: "cleanup",
+    LICENSE_CHECK: "license-check",
   },
   intervals: {
-    dailyReminder: 1440, // 24 hours
-    cleanup: 360, // 6 hours
+    dailyReminder: 1440,   // 24 hours in minutes
+    cleanup: 360,           // 6 hours in minutes
+    licenseCheck: 10080,    // 7 days in minutes
   },
+  FREE_LIMIT: 5,
 };
+
+// ============================================
+// SECURE LICENSE INFRASTRUCTURE
+// (Same logic as license.js - must match!)
+// ============================================
+
+// Secret key components (char codes - harder to extract after obfuscation)
+const _a = [80, 114, 49, 99, 51, 84, 114, 52, 99, 107, 51, 114];
+const _b = [95, 83, 51, 99, 114, 51, 116, 33, 75, 51, 89];
+
+// Obfuscated storage keys (must match license.js)
+const _SK = {
+  token: "_xpt",
+  signature: "_xps",
+  validated: "_xpv",
+};
+
+// Build secret at runtime
+function _buildSecret() {
+  const p1 = String.fromCharCode(..._a);
+  const p2 = String.fromCharCode(..._b);
+  try {
+    return p1 + p2 + chrome.runtime.id;
+  } catch {
+    return p1 + p2;
+  }
+}
+
+// HMAC-SHA256 signing
+async function _sign(data) {
+  const secret = _buildSecret();
+  const enc = new TextEncoder();
+
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const sig = await crypto.subtle.sign("HMAC", keyMaterial, enc.encode(data));
+  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+// Verify HMAC signature
+async function _verify(data, signature) {
+  try {
+    const expected = await _sign(data);
+    if (expected.length !== signature.length) return false;
+    let result = 0;
+    for (let i = 0; i < expected.length; i++) {
+      result |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+    }
+    return result === 0;
+  } catch {
+    return false;
+  }
+}
+
+// Encode/decode token
+function _encodeToken(obj) {
+  try {
+    return btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+  } catch {
+    return null;
+  }
+}
+
+function _decodeToken(str) {
+  try {
+    return JSON.parse(decodeURIComponent(escape(atob(str))));
+  } catch {
+    return null;
+  }
+}
+
+// ============================================
+// SECURE PREMIUM VERIFICATION
+// ============================================
+
+/**
+ * Check if user has premium (tamper-proof)
+ * NEVER reads plain "isPro" from storage
+ */
+async function isSecurePremium() {
+  try {
+    const result = await chrome.storage.local.get([
+      _SK.token,
+      _SK.signature,
+      _SK.validated,
+    ]);
+
+    const token = result[_SK.token];
+    const sig = result[_SK.signature];
+
+    if (!token || !sig) return false;
+
+    // Verify signature integrity
+    const isValid = await _verify(token, sig);
+    if (!isValid) {
+      console.warn("⚠️ License tampering detected! Resetting...");
+      await chrome.storage.local.remove([
+        _SK.token,
+        _SK.signature,
+        _SK.validated,
+        "isPro",
+        "licenseKey",
+        "licenseData",
+      ]);
+      return false;
+    }
+
+    // Verify token contains valid data
+    const data = _decodeToken(token);
+    if (!data || !data.k) return false;
+
+    return true;
+  } catch (error) {
+    console.error("Secure premium check error:", error);
+    return false;
+  }
+}
+
+/**
+ * Store a secure license token
+ */
+async function storeSecureLicense(licenseKey, customerEmail, customerName) {
+  try {
+    const tokenData = {
+      k: licenseKey,
+      a: new Date().toISOString(),
+      e: customerEmail || "",
+      n: customerName || "",
+    };
+
+    const token = _encodeToken(tokenData);
+    if (!token) return false;
+
+    const signature = await _sign(token);
+
+    await chrome.storage.local.set({
+      [_SK.token]: token,
+      [_SK.signature]: signature,
+      [_SK.validated]: Date.now(),
+    });
+
+    // Remove old insecure fields
+    await chrome.storage.local.remove(["isPro", "licenseKey", "licenseData"]);
+
+    return true;
+  } catch (error) {
+    console.error("Error storing secure license:", error);
+    return false;
+  }
+}
+
+/**
+ * Clear all license data
+ */
+async function clearSecureLicense() {
+  await chrome.storage.local.remove([
+    _SK.token,
+    _SK.signature,
+    _SK.validated,
+    "isPro",
+    "licenseKey",
+    "licenseData",
+  ]);
+}
+
+// ============================================
+// MIGRATE OLD LICENSE FORMAT
+// ============================================
+
+async function migrateOldLicense() {
+  try {
+    const old = await chrome.storage.local.get([
+      "isPro",
+      "licenseKey",
+      "licenseData",
+    ]);
+
+    // Check if old format exists AND new format doesn't
+    if (old.isPro && old.licenseKey) {
+      const existing = await chrome.storage.local.get([_SK.token]);
+      if (existing[_SK.token]) {
+        // Already migrated, just clean up old fields
+        await chrome.storage.local.remove([
+          "isPro",
+          "licenseKey",
+          "licenseData",
+        ]);
+        return;
+      }
+
+      console.log("🔄 Migrating old license to secure format...");
+
+      // Validate the old key with API first
+      const validation = await validateLicenseWithAPI(old.licenseKey);
+
+      if (validation.valid) {
+        // Store in new secure format
+        await storeSecureLicense(
+          old.licenseKey,
+          validation.data?.customerEmail || old.licenseData?.customerEmail,
+          validation.data?.customerName || old.licenseData?.customerName
+        );
+        console.log("✅ License migrated successfully");
+      } else {
+        console.warn("⚠️ Old license key is no longer valid");
+      }
+
+      // Remove old format regardless
+      await chrome.storage.local.remove([
+        "isPro",
+        "licenseKey",
+        "licenseData",
+      ]);
+    }
+  } catch (error) {
+    console.error("Migration error:", error);
+  }
+}
 
 // ============================================
 // INSTALLATION & STARTUP
@@ -29,7 +256,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   console.log("📦 Extension event:", details.reason);
 
   if (details.reason === "install") {
-    // Initialize with empty data
     await chrome.storage.local.set({
       products: [],
       alerts: [],
@@ -48,16 +274,22 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     showNotification(
       "welcome",
       "🎉 Welcome to AliExpress Price Tracker!",
-      "Visit any AliExpress product page to start tracking.",
+      "Visit any AliExpress product page to start tracking."
     );
+  }
+
+  if (details.reason === "update") {
+    // Migrate old license format to secure format
+    await migrateOldLicense();
   }
 
   setupAlarms();
   updateBadge();
 });
 
-chrome.runtime.onStartup.addListener(() => {
+chrome.runtime.onStartup.addListener(async () => {
   console.log("🚀 Extension started");
+  await migrateOldLicense();
   setupAlarms();
   updateBadge();
 });
@@ -79,7 +311,12 @@ async function setupAlarms() {
     periodInMinutes: CONFIG.intervals.cleanup,
   });
 
-  console.log("⏰ Alarms set up");
+  chrome.alarms.create(CONFIG.alarms.LICENSE_CHECK, {
+    delayInMinutes: 30,
+    periodInMinutes: CONFIG.intervals.licenseCheck,
+  });
+
+  console.log("⏰ Alarms set up (including license check)");
 }
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -89,6 +326,9 @@ chrome.alarms.onAlarm.addListener((alarm) => {
       break;
     case CONFIG.alarms.CLEANUP:
       handleCleanup();
+      break;
+    case CONFIG.alarms.LICENSE_CHECK:
+      handleLicenseRevalidation();
       break;
   }
 });
@@ -105,7 +345,7 @@ async function handleDailyReminder() {
   showNotification(
     "reminder",
     "📋 Check Your Tracked Products",
-    `You have ${products.length} products. Visit them to check for price drops!`,
+    `You have ${products.length} products. Visit them to check for price drops!`
   );
 }
 
@@ -117,27 +357,75 @@ async function handleCleanup() {
   }
 }
 
+async function handleLicenseRevalidation() {
+  try {
+    const result = await chrome.storage.local.get([_SK.token, _SK.signature]);
+    const token = result[_SK.token];
+    const sig = result[_SK.signature];
+
+    if (!token || !sig) return;
+
+    // Verify integrity first
+    const isValid = await _verify(token, sig);
+    if (!isValid) {
+      console.warn("⚠️ License tampering detected during revalidation");
+      await clearSecureLicense();
+      return;
+    }
+
+    // Decode token to get license key
+    const data = _decodeToken(token);
+    if (!data || !data.k) return;
+
+    console.log("🔑 Re-validating license with API...");
+
+    // Validate with LemonSqueezy
+    const validation = await validateLicenseWithAPI(data.k);
+
+    if (validation.valid) {
+      // Update validation timestamp
+      await chrome.storage.local.set({ [_SK.validated]: Date.now() });
+      console.log("✅ License re-validated successfully");
+    } else {
+      // License no longer valid
+      console.warn("⚠️ License no longer valid, revoking premium");
+      await clearSecureLicense();
+
+      showNotification(
+        "license-revoked",
+        "⚠️ License Expired",
+        "Your premium license is no longer valid. Please re-activate."
+      );
+    }
+  } catch (error) {
+    console.error("License revalidation error:", error);
+    // Don't revoke on network errors (grace period)
+  }
+}
+
 // ============================================
-// LICENSE VALIDATION (LemonSqueezy)
+// LICENSE VALIDATION (LemonSqueezy API)
 // ============================================
 
 async function validateLicenseWithAPI(licenseKey) {
   try {
     console.log("🔑 Validating license with LemonSqueezy API...");
-    
-    const response = await fetch("https://api.lemonsqueezy.com/v1/licenses/validate", {
-      method: "POST",
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        license_key: licenseKey,
-      }),
-    });
+
+    const response = await fetch(
+      "https://api.lemonsqueezy.com/v1/licenses/validate",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          license_key: licenseKey,
+        }),
+      }
+    );
 
     const data = await response.json();
-    console.log("🔑 LemonSqueezy response:", data);
 
     if (data.valid || data.license_key?.status === "active") {
       return {
@@ -145,21 +433,25 @@ async function validateLicenseWithAPI(licenseKey) {
         data: {
           key: licenseKey,
           activatedAt: new Date().toISOString(),
-          customerEmail: data.meta?.customer_email || data.license_key?.customer_email,
-          customerName: data.meta?.customer_name || data.license_key?.customer_name,
+          customerEmail:
+            data.meta?.customer_email || data.license_key?.customer_email,
+          customerName:
+            data.meta?.customer_name || data.license_key?.customer_name,
         },
       };
     } else {
       return {
         valid: false,
-        error: data.error || "License key is not valid or has been deactivated",
+        error:
+          data.error || "License key is not valid or has been deactivated",
       };
     }
   } catch (error) {
     console.error("🔑 License API error:", error);
     return {
       valid: false,
-      error: "Failed to validate license. Please check your internet connection.",
+      error:
+        "Failed to validate license. Please check your internet connection.",
     };
   }
 }
@@ -171,12 +463,24 @@ async function validateLicenseWithAPI(licenseKey) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("📨 Message:", message.type || message.action);
 
-  // Handle license validation
+  // Handle license validation (from Premium page)
   if (message.action === "validateLicense") {
     validateLicenseWithAPI(message.licenseKey)
-      .then((result) => sendResponse(result))
-      .catch((error) => sendResponse({ valid: false, error: error.message }));
-    return true; // Required for async sendResponse
+      .then(async (result) => {
+        // If valid, also store secure token from background
+        if (result.valid) {
+          await storeSecureLicense(
+            result.data.key,
+            result.data.customerEmail,
+            result.data.customerName
+          );
+        }
+        sendResponse(result);
+      })
+      .catch((error) =>
+        sendResponse({ valid: false, error: error.message })
+      );
+    return true;
   }
 
   const handlers = {
@@ -189,6 +493,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     CLEAR_ALERTS: () => clearAlerts(),
     UPDATE_SETTINGS: () => handleUpdateSettings(message.settings),
     OPEN_DASHBOARD: () => openDashboard(),
+    CHECK_PREMIUM: () => checkPremiumStatus(),
   };
 
   const handler = handlers[message.type];
@@ -209,6 +514,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // ============================================
+// PREMIUM STATUS CHECK (message handler)
+// ============================================
+
+async function checkPremiumStatus() {
+  const isPro = await isSecurePremium();
+  return { isPro };
+}
+
+// ============================================
 // HANDLERS
 // ============================================
 
@@ -216,10 +530,9 @@ async function handleTrackProduct(productData) {
   try {
     console.log("📦 Tracking product:", productData.title?.substring(0, 50));
 
-    const { products, stats, isPro } = await chrome.storage.local.get([
+    const { products, stats } = await chrome.storage.local.get([
       "products",
       "stats",
-      "isPro",
     ]);
     const productList = products || [];
     const currentStats = stats || {
@@ -228,9 +541,10 @@ async function handleTrackProduct(productData) {
       totalSaved: 0,
     };
 
-    // ✅ CHECK PRODUCT LIMIT (Free = 5 products max)
-    const FREE_LIMIT = 5;
-    if (!isPro && productList.length >= FREE_LIMIT) {
+    // ✅ SECURE PREMIUM CHECK (tamper-proof)
+    const isPro = await isSecurePremium();
+
+    if (!isPro && productList.length >= CONFIG.FREE_LIMIT) {
       console.log("⚠️ Product limit reached (Free plan)");
       return {
         success: false,
@@ -238,14 +552,14 @@ async function handleTrackProduct(productData) {
         message:
           "You've reached the free plan limit of 5 products. Upgrade to Premium for unlimited tracking!",
         currentCount: productList.length,
-        limit: FREE_LIMIT,
+        limit: CONFIG.FREE_LIMIT,
       };
     }
 
-    // Check if already tracked (compare base URLs without query params)
+    // Check if already tracked
     const baseUrl = productData.url.split("?")[0];
     const existingIndex = productList.findIndex(
-      (p) => p.url.split("?")[0] === baseUrl,
+      (p) => p.url.split("?")[0] === baseUrl
     );
 
     if (existingIndex !== -1) {
@@ -287,7 +601,7 @@ async function handleTrackProduct(productData) {
     showNotification(
       `track-${newProduct.id}`,
       "✅ Product Tracked!",
-      `Now tracking: ${productData.title.substring(0, 40)}...`,
+      `Now tracking: ${productData.title.substring(0, 40)}...`
     );
 
     console.log("✅ Product tracked successfully");
@@ -295,8 +609,8 @@ async function handleTrackProduct(productData) {
       success: true,
       product: newProduct,
       currentCount: productList.length,
-      limit: FREE_LIMIT,
-      isPro: isPro || false,
+      limit: CONFIG.FREE_LIMIT,
+      isPro: isPro,
     };
   } catch (error) {
     console.error("❌ Track product error:", error);
@@ -306,7 +620,10 @@ async function handleTrackProduct(productData) {
 
 async function handleCheckPrice(productData) {
   try {
-    console.log("🔍 Checking price for:", productData.url?.substring(0, 50));
+    console.log(
+      "🔍 Checking price for:",
+      productData.url?.substring(0, 50)
+    );
 
     const { products, alerts, stats, settings } =
       await chrome.storage.local.get([
@@ -324,10 +641,10 @@ async function handleCheckPrice(productData) {
       totalSaved: 0,
     };
 
-    // Find product by URL (ignore query params)
+    // Find product by URL
     const baseUrl = productData.url.split("?")[0];
     const productIndex = productList.findIndex(
-      (p) => p.url.split("?")[0] === baseUrl,
+      (p) => p.url.split("?")[0] === baseUrl
     );
 
     if (productIndex === -1) {
@@ -350,16 +667,23 @@ async function handleCheckPrice(productData) {
       const savings = (((oldPrice - newPrice) / oldPrice) * 100).toFixed(1);
       const savedAmount = Math.abs(oldPrice - newPrice).toFixed(2);
 
-      console.log("📊 Price changed:", { priceDropped, savings, savedAmount });
+      console.log("📊 Price changed:", {
+        priceDropped,
+        savings,
+        savedAmount,
+      });
 
       // Update product price
       product.price = newPrice;
 
       // Update lowest/highest prices
-      product.lowestPrice = Math.min(product.lowestPrice || newPrice, newPrice);
+      product.lowestPrice = Math.min(
+        product.lowestPrice || newPrice,
+        newPrice
+      );
       product.highestPrice = Math.max(
         product.highestPrice || newPrice,
-        newPrice,
+        newPrice
       );
 
       // Add to price history
@@ -369,7 +693,7 @@ async function handleCheckPrice(productData) {
         date: new Date().toISOString(),
       });
 
-      // Keep only last 50 price history entries
+      // Keep only last 50 entries
       if (product.priceHistory.length > 50) {
         product.priceHistory = product.priceHistory.slice(-50);
       }
@@ -379,7 +703,6 @@ async function handleCheckPrice(productData) {
       if (priceDropped) {
         console.log("🎉 PRICE DROPPED! Creating alert...");
 
-        // Create alert
         const newAlert = {
           id: Date.now().toString(),
           productId: product.id,
@@ -397,26 +720,24 @@ async function handleCheckPrice(productData) {
 
         alertList.unshift(newAlert);
 
-        // Update stats
-        currentStats.totalPriceDrops = (currentStats.totalPriceDrops || 0) + 1;
+        currentStats.totalPriceDrops =
+          (currentStats.totalPriceDrops || 0) + 1;
         currentStats.totalSaved = (
-          parseFloat(currentStats.totalSaved || 0) + parseFloat(savedAmount)
+          parseFloat(currentStats.totalSaved || 0) +
+          parseFloat(savedAmount)
         ).toFixed(2);
 
-        // Save everything
         await chrome.storage.local.set({
           products: productList,
-          alerts: alertList.slice(0, 100), // Keep max 100 alerts
+          alerts: alertList.slice(0, 100),
           stats: currentStats,
         });
 
         console.log("💾 Saved price drop data");
 
-        // Update badge
         chrome.action.setBadgeText({ text: "!" });
         chrome.action.setBadgeBackgroundColor({ color: "#10B981" });
 
-        // Show notification
         if (settings?.enableNotifications !== false) {
           chrome.notifications.create(
             `price-drop-${product.id}-${Date.now()}`,
@@ -430,11 +751,14 @@ async function handleCheckPrice(productData) {
             },
             (notificationId) => {
               if (chrome.runtime.lastError) {
-                console.error("Notification error:", chrome.runtime.lastError);
+                console.error(
+                  "Notification error:",
+                  chrome.runtime.lastError
+                );
               } else {
                 console.log("✅ Notification shown:", notificationId);
               }
-            },
+            }
           );
         }
 
@@ -447,13 +771,13 @@ async function handleCheckPrice(productData) {
         };
       }
 
-      // Price increased (not a drop)
+      // Price increased
       await chrome.storage.local.set({ products: productList });
       console.log("📈 Price increased, saved");
       return { success: true, priceChanged: true, oldPrice, newPrice };
     }
 
-    // Price unchanged - just update lastChecked
+    // Price unchanged
     await chrome.storage.local.set({ products: productList });
     console.log("➡️ Price unchanged");
     return { success: true, priceChanged: false };
@@ -472,7 +796,9 @@ async function handleDeleteProduct(productId) {
       "stats",
     ]);
 
-    const updatedProducts = (products || []).filter((p) => p.id !== productId);
+    const updatedProducts = (products || []).filter(
+      (p) => p.id !== productId
+    );
     const updatedStats = {
       ...stats,
       totalTracked: updatedProducts.length,
@@ -597,7 +923,7 @@ function showNotification(id, title, message) {
       if (chrome.runtime.lastError) {
         console.error("Notification error:", chrome.runtime.lastError);
       }
-    },
+    }
   );
 }
 
@@ -610,4 +936,5 @@ chrome.notifications.onClicked.addListener(() => {
 // ============================================
 
 updateBadge();
-console.log("✅ Background script ready (Local Storage Mode)");
+migrateOldLicense();
+console.log("✅ Background script ready (Secure License Mode)");
