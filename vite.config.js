@@ -46,15 +46,22 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       emptyDirBeforeWrite: true,
 
-      // Minification settings for production
+      // ✅ Minification ONLY (allowed by Chrome Web Store)
       minify: isProduction ? 'terser' : false,
       terserOptions: isProduction
         ? {
             compress: {
-              drop_console: true,
-              drop_debugger: true,
+              drop_console: true,     // Remove console.log
+              drop_debugger: true,    // Remove debugger statements
+              pure_funcs: ['console.log', 'console.debug', 'console.info'],
+              passes: 2,             // Multiple compression passes
             },
-            mangle: true,
+            mangle: {
+              toplevel: false,        // Don't mangle top-level names
+            },
+            format: {
+              comments: false,        // Remove all comments
+            },
           }
         : undefined,
 
@@ -77,7 +84,6 @@ export default defineConfig(({ mode }) => {
       },
     },
 
-    // Resolve aliases
     resolve: {
       alias: {
         '@': resolve(__dirname, './src'),
